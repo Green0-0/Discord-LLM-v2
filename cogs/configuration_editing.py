@@ -231,9 +231,9 @@ class Configuration_Editing(commands.Cog):
 
         async def callback(self, interaction: discord.Interaction):
             foundat = int(self.values[0])
-            config_found = data.configs(foundat)
+            config_found = data.configs[foundat]
             for x in range(len(data.characters)):
-                if data.characters[x].config == config_found:
+                if data.characters[x].conf == config_found:
                     embed = discord.Embed(title="Config is used in character '" + data.characters[x].name + "'.", color=discord.Color.yellow())
                     await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
                     return
@@ -271,7 +271,7 @@ class Configuration_Editing(commands.Cog):
             return
         config_found = data.configs[foundat]
         for x in range(len(data.characters)):
-            if data.characters[x].config == config_found:
+            if data.characters[x].conf == config_found:
                 embed = discord.Embed(title="Config is used in character '" + data.characters[x].name + "'.", color=discord.Color.yellow())
                 await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
                 return

@@ -1,0 +1,27 @@
+{
+    "template":"<|im_start|>system\n_SYSTEM_\n<|im_end|>\n_HISTORY_<|im_start|>_NAME_\n_PROMPT_\n<|im_end|>\n<|im_start|>_AI-NAME_\n",
+    "other_field_history":"<|im_start|>_NAME_\n_PROMPT_\n<|im_end|>",
+    "ai_field_history":"<|im_start|>_AI-NAME_\n_PROMPT_\n<|im_end|>",
+    "history_joiner":"\n",
+    "stop_criteria":
+    [
+        "</s>", "<<SYS",
+        "[INST", "[/INST", 
+        "###", 
+        "<|im",
+        "<|_AI-NAME_",
+        "<|_NAME_",
+        "USER:",
+        "ASSISTANT",
+        "_AI-NAME_:",
+        "_NAME_:",
+        "'_NAME_':",
+        "\"_NAME_\":",
+        "'_AI-NAME_':",
+        "\"_AI-NAME_\":",
+        "User '",
+        "user '",
+        "User \"",
+        "user \""
+    ]
+}

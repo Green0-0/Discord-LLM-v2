@@ -1,0 +1,27 @@
+{
+    "template":"_SYSTEM_\n_HISTORY_USER '_NAME_': _PROMPT_\nAI '_AI-NAME_':",
+    "other_field_history":"USER '_NAME_': _PROMPT_",
+    "ai_field_history":"'_AI-NAME_': _PROMPT_",
+    "history_joiner":"\n",
+    "stop_criteria":
+    [
+        "</s>", "<<SYS",
+        "[INST", "[/INST", 
+        "###", 
+        "<|im",
+        "<|_AI-NAME_",
+        "<|_NAME_",
+        "USER:",
+        "ASSISTANT",
+        "_AI-NAME_:",
+        "_NAME_:",
+        "'_NAME_':",
+        "\"_NAME_\":",
+        "'_AI-NAME_':",
+        "\"_AI-NAME_\":",
+        "User '",
+        "user '",
+        "User \"",
+        "user \""
+    ]
+}

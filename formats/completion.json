@@ -1,0 +1,7 @@
+{
+    "template":"_PROMPT_",
+    "other_field_history":"<",
+    "ai_field_history":"",
+    "history_joiner":"",
+    "stop_criteria":[]
+}

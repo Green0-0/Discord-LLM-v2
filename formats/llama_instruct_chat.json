@@ -1,0 +1,27 @@
+{
+    "template":"[INST]_SYSTEM_\n_HISTORY__NAME_: _PROMPT_\n\nWrite a singular message continuing this conversation for _AI-NAME_. Do not write anything else.[/INST] Understood. Below is a response in character as _AI-NAME_.\n_AI-NAME_: ",
+    "other_field_history":"_NAME_: _PROMPT_",
+    "ai_field_history":"_AI-NAME_: _PROMPT_",
+    "history_joiner":"\n",
+    "stop_criteria":
+    [
+        "</s>", "<<SYS",
+        "[INST", "[/INST", 
+        "###", 
+        "<|im",
+        "<|_AI-NAME_",
+        "<|_NAME_",
+        "USER:",
+        "ASSISTANT",
+        "_AI-NAME_:",
+        "_NAME_:",
+        "'_NAME_':",
+        "\"_NAME_\":",
+        "'_AI-NAME_':",
+        "\"_AI-NAME_\":",
+        "User '",
+        "user '",
+        "User \"",
+        "user \""
+    ]
+}

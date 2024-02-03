@@ -17,13 +17,14 @@ class Validator():
             except Exception:
                 raise
         if self.name == "_REPETITION_":
+            if len(text.split(" ")) < 9:
+                return True
             whole_history = ""
             for message in chat.get_messages(4000):
                 whole_history += message.text
-            sec_1 = text[:int(len(text) / 3)]
-            sec_2 = text[int(len(text) / 3) : int(2 * len(text) / 3)]
-            sec_3 = text[int(2 * len(text) / 3) :]
-            return sec_1 not in whole_history and sec_2 not in whole_history and sec_3 not in whole_history
+            sec_1 = text[:int(len(text) / 2)]
+            sec_2 = text[int(len(text) / 2) :]
+            return sec_1 not in whole_history and sec_2 not in whole_history
         return self.name.lower() not in text.lower()
     
     def __str__(self):

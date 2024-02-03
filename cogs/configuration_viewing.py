@@ -116,6 +116,7 @@ class Configuration_Viewing(commands.Cog):
         config_found = data.configs[foundat]
         s = "- Model: " + config_found.model.name
         s += "\n- Format: " + config_found.format.name
+        s += "\n - Sampling Preset: " + config_found.params.name
         s += "\n- Validators: " + str(len(config_found.validators))
         embed = discord.Embed(title=str(foundat) + "\. " + config_found.name, description=s, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)

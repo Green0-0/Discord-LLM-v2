@@ -73,7 +73,7 @@ class Generics(commands.Cog):
 
     @app_commands.command(name = "ping", description = "Pings the bot.")
     async def ping(self, interaction : discord.Interaction):
-        await interaction.response.send_message("Pong! " + "(" + str(self.bot.latency * 1000) + "ms)")
+        await interaction.response.send_message("Pong! " + "(" + str(self.bot.latency * 1000) + "ms)", ephemeral=True, delete_after=5)
 
     @app_commands.command(name = "add_admin", description = "Allows someone to use the bot admin commands.")
     async def add_admin(self, interaction : discord.Interaction, user : discord.User):
@@ -83,9 +83,11 @@ class Generics(commands.Cog):
             return
         if user not in data.admins:
             data.admins.append(user)
-            await interaction.response.send_message("Added " + user.mention)
+            embed = discord.Embed(description="Added " + user.mention + " as an admin.", color=discord.Color.blue())
+            await interaction.response.send_message(embed=embed)
         else:
-            await interaction.response.send_message("User is already an admin.")
+            embed = discord.Embed(title="User is already an admin.", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
 
     @app_commands.command(name = "remove_admin", description = "Removes the permission to use bot admin commands from someone.")
     async def remove_admin(self, interaction : discord.Interaction, user : discord.User):
@@ -95,9 +97,11 @@ class Generics(commands.Cog):
             return
         if user in data.admins:
             data.admins.remove(user)
-            await interaction.response.send_message("Removed " + user.mention)
+            embed = discord.Embed(description="Removed admin perms from " + user.mention + ".", color=discord.Color.blue())
+            await interaction.response.send_message(embed=embed)
         else:
-            await interaction.response.send_message("User is not an admin.")
+            embed = discord.Embed(title="User is not an admin.", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
 
     @app_commands.command(name = "reload", description = "After updating the source code and saving the files, this will reload the bot without losing data.")
     async def reload(self, interaction : discord.Interaction):
@@ -165,12 +169,33 @@ class Generics(commands.Cog):
     @app_commands.command(name = "get_logs", description = "Gets the last 1000 characters from the console.")
     @app_commands.checks.bot_has_permissions(embed_links=True)
     async def get_logs(self, interaction : discord.Interaction):
+        if not await self.is_admin(interaction):
+            embed = discord.Embed(title="You do not have permission to use this command.", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+            return
+        text = data.log_stream.getvalue()
+        with open("Logs.txt", "w") as file:
+            file.write(text[-300000:])
+        embed = discord.Embed(title="Last 3500 Characters of log", description="```" + text[-3500:] + "```", color=discord.Color.blue())
+        with open("Logs.txt", "rb") as file:
+            await interaction.response.send_message(embed=embed, file=discord.File(file, "Logs.txt"), ephemeral=True)               
+
+    @app_commands.command(name = "deep_logging", description = "Toggles deep logging.")
+    @app_commands.checks.bot_has_permissions(embed_links=True)
+    async def deep_logging(self, interaction : discord.Interaction):
        if not await self.is_admin(interaction):
             embed = discord.Embed(title="You do not have permission to use this command.", color=discord.Color.yellow())
             await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
             return
-       embed = discord.Embed(title="Last 3500 Characters of log", description=data.log_stream.getvalue()[-3500:], color=discord.Color.blue())
-       await interaction.response.send_message(embed=embed)
+       if config.Config.deep_logging:
+           config.Config.deep_logging = False
+           embed = discord.Embed(description="Deep Logging Disabled", color=discord.Color.blue())
+           await interaction.response.send_message(embed=embed)
+       else:
+           config.Config.deep_logging = True
+           embed = discord.Embed(description="Deep Logging Enabled", color=discord.Color.blue())
+           await interaction.response.send_message(embed=embed)
+       
 
     
 

@@ -373,6 +373,104 @@ class Configuration_Editing(commands.Cog):
         embed = discord.Embed(description="Successfully deleted '" + removed.name + "'!", color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
+    # A select menu is basically a dropdown where the user has to pick one of the options
+    # A select menu that lets an admin edit the context length of a model
+    class EditModelCtx_selectmenu(discord.ui.Select):
+        def __init__(self, parent, new_length):
+            self.parent = parent
+            self.new_length = new_length
+            options = []
+            for i in range (len(data.models)):
+                options.append(discord.SelectOption(label=i, description=data.models[i].name))
+
+            super().__init__(placeholder='Select a model to edit the context length of:', min_values=1, max_values=1, options=options)
+
+        async def callback(self, interaction: discord.Interaction):
+            foundat = int(self.values[0])
+            model_found = data.models[foundat]
+            model_found.context_length = self.new_length
+            embed = discord.Embed(description="Successfully changed the context length of '" + model_found.name + "' to " + str(self.new_length) + "!", color=discord.Color.blue())
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.edit_original_response(view = None)
+
+    # Attaches the above select menu to a view
+    class EditModelCtxView(discord.ui.View):
+        def __init__(self, parent, new_length):
+            super().__init__()
+
+            # Adds the dropdown to our view object.
+            self.add_item(parent.EditModelCtx_selectmenu(parent, new_length))
+
+    @app_commands.command(name = "edit_model_ctx", description = "Edit a model's context length.")
+    @app_commands.checks.bot_has_permissions(embed_links=True)
+    async def edit_model_ctx(self, interaction : discord.Interaction, new_length : int, id : str = "-1"):
+        if not await self.is_admin(interaction):
+            embed = discord.Embed(title="You do not have permission to use this command.", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+            return
+        if new_length < 2:
+            embed = discord.Embed(title="Please enter a valid context length.", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+            return
+        if id == "-1":
+            view = self.EditModelCtxView(self, new_length)
+            embed = discord.Embed(description="Select a model to edit the context length of:", color=discord.Color.blue())
+            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+            return
+        foundat = await search_for_data(id, data.models, interaction)
+        if foundat == -1:
+            return
+        model_found = data.models[foundat]
+        model_found.context_length = new_length
+        embed = discord.Embed(description="Successfully changed the context length of '" + model_found.name + "' to " + str(new_length) + "!", color=discord.Color.blue())
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    # A select menu is basically a dropdown where the user has to pick one of the options
+    # A select menu that lets an admin edit the context length of a model
+    class ChangeAnalysisModel_selectmenu(discord.ui.Select):
+        def __init__(self, parent):
+            self.parent = parent
+            options = []
+            for i in range (len(data.models)):
+                options.append(discord.SelectOption(label=i, description=data.models[i].name))
+
+            super().__init__(placeholder='Select a model for the queue analyzer to use:', min_values=1, max_values=1, options=options)
+
+        async def callback(self, interaction: discord.Interaction):
+            foundat = int(self.values[0])
+            model_found = data.models[foundat]
+            data.analysis_config.model = model_found
+            embed = discord.Embed(description="Successfully set the queue analyzer to use '" + model_found.name + "'!", color=discord.Color.blue())
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    # Attaches the above select menu to a view
+    class ChangeAnalysisModelView(discord.ui.View):
+        def __init__(self, parent):
+            super().__init__()
+
+            # Adds the dropdown to our view object.
+            self.add_item(parent.ChangeAnalysisModel_selectmenu(parent))
+
+    @app_commands.command(name = "change_queue_analyzer_model", description = "Edit a model's context length.")
+    @app_commands.checks.bot_has_permissions(embed_links=True)
+    async def change_queue_analyzer_model(self, interaction : discord.Interaction, id : str = "-1"):
+        if not await self.is_admin(interaction):
+            embed = discord.Embed(title="You do not have permission to use this command.", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+            return
+        if id == "-1":
+            view = self.ChangeAnalysisModelView(self)
+            embed = discord.Embed(description="Select a model for the queue analyzer to use:", color=discord.Color.blue())
+            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+            return
+        foundat = await search_for_data(id, data.models, interaction)
+        if foundat == -1:
+            return
+        model_found = data.models[foundat]
+        data.analysis_config.model = model_found
+        embed = discord.Embed(description="Successfully set the queue analyzer to use '" + model_found.name + "'!", color=discord.Color.blue())
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
     @app_commands.command(name = "create_validator", description = "Create a validator.")
     @app_commands.checks.bot_has_permissions(embed_links=True)
     async def create_validator(self, interaction : discord.Interaction, name : str):
@@ -777,7 +875,7 @@ class Configuration_Editing(commands.Cog):
 
     @app_commands.command(name = "create_format", description = "Create a prompt format.")
     @app_commands.checks.bot_has_permissions(embed_links=True)
-    async def create_params(self, interaction : discord.Interaction):
+    async def create_format(self, interaction : discord.Interaction):
         if not await self.is_admin(interaction):
             embed = discord.Embed(title="You do not have permission to use this command.", color=discord.Color.yellow())
             await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)

@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import data 
 import logging
-import logging
 from io import StringIO
 from discord import app_commands
 

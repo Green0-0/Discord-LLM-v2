@@ -2,6 +2,7 @@ from libs import params
 import json
 import socket
 import ssl
+import logging
 import http.client
 
 # Points to a LLM model on neuroengine 
@@ -36,7 +37,7 @@ class Model:
                 if int(response["errorcode"])==0:
                     break
         except:
-            raise "Connection error."
+            raise Exception("Connection error.")
         return response["reply"]
 
     def send(self,command):

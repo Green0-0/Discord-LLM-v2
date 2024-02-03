@@ -40,7 +40,7 @@ class Format:
         self.other_field_history = other_field_history
         self.history_joiner = history_joiner
         self.stop_criteria = stop_criteria
-        
+
     def __init__(self, name : str, json : dict):
         self.name = name
         self.template = json["template"]
@@ -49,7 +49,7 @@ class Format:
         self.history_joiner = json["history_joiner"]
         self.stop_criteria = json["stop_criteria"]
 
-    def build_prompt(self, character : character.Character, other_name : str, context : chat.Chat, max_tokens : int, tokenizer : sentencepiece.SentencePieceProcessor, continuations : bool = True) -> str:
+    def build_prompt(self, character : character.Character, other_name : str, context : chat.Chat, max_tokens : int, tokenizer : sentencepiece.SentencePieceProcessor, continuations : bool = False) -> str:
         history = []
         msgs = context.get_messages(max_tokens - 30, self.template + "\n" + character.system, tokenizer)
         for message in msgs[:len(msgs) - 1]:
@@ -62,7 +62,7 @@ class Format:
                 prompt = ""
                 promptAI = msgs[len(msgs) - 1].text
             else:
-                history.append(self.replaceNameContent(ai_field_history, character.name, other_name, msgs[len(msgs) - 1].text))
+                history.append(self.replaceNameContent(self.ai_field_history, character.name, other_name, msgs[len(msgs) - 1].text))
                 prompt = ""
                 promptAI = ""
         else:

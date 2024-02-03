@@ -4,6 +4,7 @@ import logging
 import traceback
 import data
 import requests
+import json
 
 import discord
 from discord.ext import commands
@@ -301,3 +302,21 @@ class Characters(commands.Cog):
         removed = data.characters.pop(foundat)
         embed = discord.Embed(description="Successfully deleted '" + removed.name + "'!", color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    @app_commands.command(name = "export_all", description = "Export all characters into a json file.")
+    @app_commands.checks.bot_has_permissions(embed_links=True)
+    async def export_all(self, interaction : discord.Interaction):
+        j = {"characters" : []}
+        for c in data.characters:
+            thing = {}
+            thing["name"] = c.name
+            thing["system"] = c.system
+            thing["icon"] = c.icon
+            thing["channels"] = c.channels
+            thing["conf"] = c.conf.name
+            j["characters"].append(thing)
+        with open("Characters.json", "w") as file:
+            json.dump(j, file)
+        embed = discord.Embed(description="Successfully exported all characters!", color=discord.Color.blue())
+        with open("Characters.json", "rb") as file:
+            await interaction.response.send_message(embed=embed, file=discord.File(file, "Characters.json"), ephemeral=True)                 

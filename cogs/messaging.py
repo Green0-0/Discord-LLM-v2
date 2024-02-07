@@ -54,7 +54,7 @@ async def send_message_as_character(channel, message : str, character : characte
                 if (i == 0):
                     await channel.send("From " + character.name + ": " + message_text)
                 else:
-                    await channel.send(mmessage_text)
+                    await channel.send(message_text)
         else:
             if (message.count("```") % 2 != 0):
                 message = message + "```"
@@ -95,7 +95,7 @@ def format_analysis (ch : chat.Chat) -> str:
     for character in data.characters:
         if character.name not in special_users:
             special_users.append("User '" + character.name + "'")
-    for message in ch.get_messages(300):
+    for message in ch.get_messages(600):
         chat.append("User '" + message.name + "': " + message.text)
         if message.name not in users and message.name not in special_users:
             users.append("User '" + message.name + "'")
@@ -107,9 +107,9 @@ def format_analysis (ch : chat.Chat) -> str:
     text += "\n\n"
     text += "### Input:"
     text += "\n"
-    text += """Below is a list of regular users. These users send messages when appropriate, when they are responded to, or simply when they feel like it. Users do not respond to themselves.
+    text += """Below is a list of regular users. These users send messages when appropriate, or when responded to or when they feel like it, but will not send two messages in a row.
 User 'John', User 'Sophia', _LIST_
-Here are some special users. Special users are particular about sending messages, they only send messages when they are explicitly mentioned by another user. Special users do not respond to themselves.
+Here are some special users. Special users are particular about sending messages, they only send messages when they are explicitly mentioned or talked to in conversation. Special users will not send two messages in a row.
 User 'Nicolas', _LIST-SPECIAL_
 Conversation history:
 _HISTORY_""".replace("_LIST_", ", ".join(users)).replace("_LIST-SPECIAL_", ", ".join(special_users)).replace("_HISTORY_", "\n".join(chat))
@@ -200,6 +200,7 @@ class Messaging(commands.Cog):
         foundat = await search_for_data(id, data.characters, interaction)
         if foundat == -1:
             return
+        self.working = True
         await interaction.response.send_message("✔", ephemeral=True, delete_after=1)
         await self.reply(interaction.user.display_name, interaction.channel, data.characters[foundat])
 
@@ -211,6 +212,8 @@ class Messaging(commands.Cog):
         if message.content == "":
             return
         if message.content == "*thinking*":
+            return
+        if message.content == "✔":
             return
         if message.clean_content.startswith("-"):
             return

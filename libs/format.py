@@ -52,6 +52,7 @@ class Format:
     def build_prompt(self, character : character.Character, other_name : str, context : chat.Chat, max_tokens : int, tokenizer : sentencepiece.SentencePieceProcessor, continuations : bool = False) -> str:
         history = []
         msgs = context.get_messages(max_tokens - 30, self.template + "\n" + character.system, tokenizer)
+        last_speaker = other_name
         for message in msgs[:len(msgs) - 1]:
             if message.name == character.name:
                 history.append(self.replaceNameContent(self.ai_field_history, character.name, other_name, message.text))
@@ -68,9 +69,10 @@ class Format:
         else:
             prompt = msgs[len(msgs) - 1].text
             promptAI = ""
+            last_speaker = msgs[len(msgs) - 1].name
         if len(history) != 0:
             history.append("")
-        realPrompt = self.replaceNameContent(self.template, character.name, other_name, prompt).replace("_HISTORY_", self.history_joiner.join(history)).replace("_SYSTEM_", character.system) + promptAI
+        realPrompt = self.replaceNameContent(self.template, character.name, last_speaker, prompt).replace("_HISTORY_", self.history_joiner.join(history)).replace("_SYSTEM_", character.system) + promptAI
         return realPrompt
 
     def replaceNameContent(self, target : str, ai_name : str, other_name : str, text : str) -> str:

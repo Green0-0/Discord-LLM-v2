@@ -35,7 +35,7 @@ async def on_app_command_error(
     interaction: discord.Interaction,
     error: app_commands.AppCommandError
 ):
-    logging.info(error)
+    logging.error(error)
     s = ""
     if not interaction.guild.get_member(bot.user.id).guild_permissions.embed_links:
         s += "The bot is missing embed link permissions in this server!\n"

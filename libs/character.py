@@ -5,10 +5,10 @@ class Character:
     icon : str
     channels : list[str]
 
-    def __init__(self, conf, name : str, icon : str, system : str, channels = ["all"]):
+    def __init__(self, conf, name : str, icon : str, system : str):
         self.name = name
         self.system = system
         self.icon = icon
-        self.channels = channels
+        self.channels = list()
         self.conf = conf
 

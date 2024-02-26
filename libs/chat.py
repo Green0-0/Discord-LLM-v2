@@ -31,7 +31,7 @@ class Chat:
         if len(self.messages) > 100:
             self.messages.pop(0)
     
-    def get_messages(self, max_tokens : int, extra_msg : str = "", tokenizer : sentencepiece.SentencePieceProcessor = None) -> list[Message]:
+    def get_messages(self, max_tokens : int, extra_msg : str = "", tokenizer : sentencepiece.SentencePieceProcessor = None, min_messages = 1000) -> list[Message]:
         new_messages = []
         token_count = 0
         if tokenizer is not None and extra_msg != "":
@@ -39,6 +39,6 @@ class Chat:
         for message in self.messages[::-1]:
             new_messages.insert(0, message)
             token_count += message.len
-            if token_count > max_tokens:
+            if token_count > max_tokens and min_messages <= len(new_messages):
                 return new_messages
         return new_messages

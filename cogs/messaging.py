@@ -88,17 +88,20 @@ async def send_message_as_character(channel, message : str, character : characte
             else:
                 await webhook.send(message)
 
-def format_analysis (ch : chat.Chat) -> str:
+def format_analysis (ch : chat.Chat, channelId) -> str:
     chat = []
     users = []
     special_users = []
     for character in data.characters:
-        if character.name not in special_users:
-            special_users.append("User '" + character.name + "'")
-    for message in ch.get_messages(600):
-        chat.append("User '" + message.name + "': " + message.text)
-        if message.name not in users and message.name not in special_users:
-            users.append("User '" + message.name + "'")
+        if channelId in character.channels or 'all' in character.channels:
+            namekey = "User '" + character.name + "'"
+            if namekey not in special_users:
+                special_users.append(namekey)
+    for message in ch.get_messages(350, min_messages=2):
+        namekey = "User '" + message.name + "'"
+        chat.append(namekey + ": " + message.text)
+        if namekey not in users and namekey not in special_users:
+            users.append(namekey)
     text = "Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request."
     text += "\n\n"
     text += "### Instruction:"
@@ -207,22 +210,31 @@ class Messaging(commands.Cog):
     # Bot receives mentions and responds to them using the current character with the AI
     @commands.Cog.listener()
     async def on_message(self, message : discord.Message):
-        if message.author == self.bot.user and not isinstance(message.channel, discord.DMChannel):
+        if message.author.id == self.bot.user.id and not isinstance(message.channel, discord.DMChannel):
+            return
+        if ("From" not in message.content or ":" not in message.content) and isinstance(message.channel, discord.DMChannel) and message.author.id == self.bot.user.id:
             return
         if message.content == "":
             return
-        if message.content == "*thinking*":
+        if message.content == "*thinking*" or (": *thinking*" in message.content and "From" in message.content):
             return
         if message.content == "✔":
             return
         if message.clean_content.startswith("-"):
             return
-        data.get_chat(message.channel.id).append(chat.Message(message.author.display_name, message.clean_content, data.tokenizer))
+        if isinstance(message.channel, discord.DMChannel) and message.author.id == self.bot.user.id:
+            from_user = message.clean_content.split(":")[0].split("From ")[1]
+            content = message.clean_content.split(":")[1]
+            data.get_chat(message.channel.id).append(chat.Message(from_user, content, data.tokenizer))
+        else:
+            data.get_chat(message.channel.id).append(chat.Message(message.author.display_name, message.clean_content, data.tokenizer))
+        if message.author.id == self.bot.user.id:
+            return
         if self.working == True:
             return
         if not isinstance(message.channel, discord.DMChannel):
             if not message.guild.get_member(self.bot.user.id).guild_permissions.manage_webhooks:
-                logging.info("Missing webhook perms for sending messages in " + message.guild.name)
+                logging.error("Missing webhook perms for sending messages in " + message.guild.name)
                 embed = discord.Embed(title="The bot is missing webhook permissions in this server!", color=discord.Color.red())
                 await message.channel.send(embed=embed)
                 return
@@ -235,7 +247,7 @@ class Messaging(commands.Cog):
         self.working = True
 
         try:
-            analysis = await data.analysis_config.queue(chat.Chat(format_analysis(data.get_chat(channel.id)), data.tokenizer), data.characters[0], "", data.tokenizer)
+            analysis = await data.analysis_config.queue(chat.Chat(format_analysis(data.get_chat(channel.id), channel.id), data.tokenizer), data.characters[0], "", data.tokenizer)
         except Exception as e:
             logging.error(e)
             self.working = False
@@ -258,6 +270,9 @@ class Messaging(commands.Cog):
             self.working = False
             return
         if character.name == data.get_chat(channel.id).messages[-1].name:
+            self.working = False
+            return
+        if channel.id not in character.channels and 'all' not in character.channels:
             self.working = False
             return
         await self.reply (from_user, channel, character)

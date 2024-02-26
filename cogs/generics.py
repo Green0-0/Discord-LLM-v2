@@ -21,41 +21,12 @@ class Generics(commands.Cog):
     @app_commands.command(name = "help", description = "Displays all available commands.")
     async def help(self, interaction : discord.Interaction):
         embed = discord.Embed(title="Help Page", description=
-        f""" This is a bot that allows you to use and talk to an LLM. You can ask it for help or simply have conversations with it. 
-        One main trait of this bot is the existence of **characters.** A character is simply a profile given to the bot, which the bot acts out. 
-        There are four sample characters besides the defaults for each LLM model: Joe Biden (Joke), Donald Trump, (Joke), Stack (Chain-of-thought coding), Commentator (Uncensored political/controversial discussion)
-        **To get a response from the bot, simply mention it (@{self.bot.user.name})!**
-        To create, edit, and manage your characters, use the following commands:
-
-        /help - displays this message
-
-        /create_character - creates a character
-        /config - edit character properties
-        /edit_profile - edit character profile
-
-        /change_character - change character
-        /list_characters - list all characters
-        /view_current_character - view current character
-        /delete_character - delete a character
-
-        /change_model - change AI model used for outputs
-        /delete_last_interaction - delete the last interaction
-        /retry_last_interaction - retry the last interaction
-        /clear_memory - clear character memory
-        /change_memory_mode - set whether or not the character should remember things
-
-        /get_character_suggestions - get suggestions for how to improve your character profile!
-        /shorten_character_profile - shorten your character profile
-
-        There are also some heavily experimental commands that allow you to create conversation channels with a bot, where multiple users (or even characters you have) can talk to a bot.
-        /create_thread - create a thread for talking to one specific character with other users
-        /delete_thread - delete a thread you made
-        /reply_as_current - reply to a character thread with your currently selected character. You can also send a query here to be added to the convo before the character replies.
-
-        Notes:
-        Be warned that if the bot is turned off for some reason all your character data will disappear, if you write any dedicated characters make sure to save them in a text file somewhere.
-        If the bot doesn't respond to a command or fails an interaction or doesn't update your character info, report it as a bug, if the bot simply takes a long time to reply to you it probably isn't an issue related to the bot.
-        If a character is acting weird try fiddling with the temperature, a range of 0.8-1.8 is recommended but varies per model.
+        f""" This is a bot that creates character avatars that seamlessly interact with others in channels they are allowed to talk in. 
+        One main trait of this bot is the existence of **characters.** 
+        A character includes a system prompt and a pfp, each character is allowed to act independently in all channels they are unlocked in.
+        To talk to a character, simply say its name, eg. "Hey Trump, how are you?". To force a character to reply use /reply_as
+        You can clear memory using /clear_memory.
+        You can also view configs/characters/etc using /view_... or /list_...
         """, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed)
         if not await self.is_admin(interaction):

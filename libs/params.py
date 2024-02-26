@@ -8,7 +8,7 @@ class Params:
     repetition_penalty : float
     max_new_tokens : int
 
-    def __init__(self, name : str, temperature : float = 1, min_p : float = 0.05, top_p : float = 0.95, top_k : int = 40, repetition_penalty : float = 0.5, max_new_tokens : int = 512):
+    def __init__(self, name : str, temperature : float = 6, min_p : float = 0.1, top_p : float = 1, top_k : int = 0, repetition_penalty : float = 0.75, max_new_tokens : int = 512):
         self.name = name
         self.temperature = temperature
         self.min_p = min_p

@@ -62,7 +62,6 @@ class Config:
                         # use stopper as regex to check if response matches, and if so, remove the match and everything that comes after
                         regex = re.compile(stopper)
                         if regex.search(response):
-                            logging.info("--!! Regex match for " + stopper  + " !!--\nIn response: " + response + "\n" )
                             response = response[:regex.search(response).span()[0]]
                     elif stopper in response:
                         response = response[:response.find(stopper)]
@@ -78,7 +77,7 @@ class Config:
                 response = ""
                 error = str(e)
                 logging.info("!!! ERROR !!!")
-                logging.info(error)
+                logging.error(error)
                 logging.info("-------------")
         if response == "":
             raise Exception("Failed to generate response because of error:\n'" + error + "'")

@@ -21,6 +21,7 @@ class Model:
             'temperature': p.temperature,
             'top_p': p.top_p,
             'top_k': p.top_k,
+            'min_p': p.min_p,
             'repetition_penalty': p.repetition_penalty,
             'max_new_len': p.max_new_tokens,
             'seed': 0,

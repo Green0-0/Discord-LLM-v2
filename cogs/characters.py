@@ -89,7 +89,23 @@ class Characters(commands.Cog):
         async def callback(self, interaction: discord.Interaction):
             foundat = int(self.values[0])
             character_found = data.characters[foundat]
-            embed = discord.Embed(title=str(foundat) + "\. " + character_found.name + " (" + str(character_found.conf.name) + ")", description=character_found.system, color=discord.Color.blue())
+            character_channel_list = "Can only be viewed in a server."
+            if len(character_found.channels) == 0:
+                character_channel_list = "None."
+            if not isinstance(interaction.channel, discord.DMChannel) and len(character_found.channels) != 0:
+                channel_list = interaction.guild.channels
+                foundChannels = []
+                for x in range(len(character_found.channels)):
+                    found = False
+                    for y in range(len(channel_list)):
+                        if character_found.channels[x] == channel_list[y].id:
+                            foundChannels.append(channel_list[y].name)
+                            found = True
+                            break
+                    if not found:
+                        foundChannels.append(character_found.channels[x])
+                character_channel_list = ", ".join(foundChannels)
+            embed = discord.Embed(title=str(foundat) + "\. " + character_found.name + " (" + str(character_found.conf.name) + ")", description=character_found.system + "\n\nChannels active: " + character_channel_list, color=discord.Color.blue())
             embed.set_thumbnail(url=character_found.icon)
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -113,7 +129,23 @@ class Characters(commands.Cog):
         if foundat == -1:
             return
         character_found = data.characters[foundat]
-        embed = discord.Embed(title=str(foundat) + "\. " + character_found.name + " (" + str(character_found.conf.name) + ")", description=character_found.system, color=discord.Color.blue())
+        character_channel_list = "Can only be viewed in a server."
+        if not isinstance(interaction.channel, discord.DMChannel) and len(character_found.channels) == 0:
+            character_channel_list = "None."
+        if not isinstance(interaction.channel, discord.DMChannel) and len(character_found.channels) != 0:
+            channel_list = interaction.guild.channels
+            foundChannels = []
+            for x in range(len(character_found.channels)):
+                found = False
+                for y in range(len(channel_list)):
+                    if character_found.channels[x] == channel_list[y].id:
+                        foundChannels.append(channel_list[y].name)
+                        found = True
+                        break
+                if not found:
+                    foundChannels.append(character_found.channels[x])
+            character_channel_list = ", ".join(foundChannels)
+        embed = discord.Embed(title=str(foundat) + "\. " + character_found.name + " (" + str(character_found.conf.name) + ")", description=character_found.system + "\n\nChannels active: " + character_channel_list, color=discord.Color.blue())
         embed.set_thumbnail(url=character_found.icon)
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -302,6 +334,84 @@ class Characters(commands.Cog):
         removed = data.characters.pop(foundat)
         embed = discord.Embed(description="Successfully deleted '" + removed.name + "'!", color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    # A select menu is basically a dropdown where the user has to pick one of the options
+    # A select menu that lets an admin unlock a character for a particular channel
+    class UnlockCharacter_selectmenu(discord.ui.Select):
+        def __init__(self, parent, all_channels):
+            self.parent = parent
+            self.all_channels = all_channels
+            options = []
+            for i in range (len(data.characters)):
+                options.append(discord.SelectOption(label=i, description=data.characters[i].name))
+
+            super().__init__(placeholder='Select a character to unlock in this channel', min_values=1, max_values=1, options=options)
+
+        async def callback(self, interaction: discord.Interaction):
+            foundat = int(self.values[0])
+            character = data.characters[foundat]
+            if self.all_channels:
+                if 'all' in character.channels:
+                    character.channels.remove('all')
+                    embed = discord.Embed(description="" + character.name + " can no longer talk in every channel!", color=discord.Color.blue())
+                    await interaction.response.send_message(embed=embed, ephemeral=True)
+                else:
+                    character.channels.append('all')
+                    embed = discord.Embed(description="" + character.name + " can now talk in every channel!", color=discord.Color.blue())
+                    await interaction.response.send_message(embed=embed, ephemeral=True)
+            else:
+                if interaction.channel.id not in character.channels:
+                    character.channels.append(interaction.channel.id)
+                    embed = discord.Embed(description="" + character.name + " can now talk in this channel!", color=discord.Color.blue())
+                    await interaction.response.send_message(embed=embed, ephemeral=True)
+                else:
+                    character.channels.remove(interaction.channel.id)
+                    embed = discord.Embed(description="" + character.name + " can no longer talk in this channel!", color=discord.Color.blue())
+                    await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.edit_original_response(view = None)
+
+    # Attaches the above select menu to a view
+    class UnlockCharacterView(discord.ui.View):
+        def __init__(self, parent, all_channels):
+            super().__init__()
+
+            # Adds the dropdown to our view object.
+            self.add_item(parent.UnlockCharacter_selectmenu(parent, all_channels))
+
+    @app_commands.command(name = "unlock_character", description = "Allow a character into this channel.")
+    @app_commands.checks.bot_has_permissions(embed_links=True)
+    async def unlock_character(self, interaction : discord.Interaction, id : str = "-1", all_channels : bool = False):
+        if not await self.is_admin(interaction):
+            embed = discord.Embed(title="You do not have permission to use this command.", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+            return
+        if id == "-1":
+            view = self.UnlockCharacterView(self, all_channels)
+            embed = discord.Embed(description="Select a character to unlock in this channel:", color=discord.Color.blue())
+            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+            return
+        foundat = await search_for_data(id, data.characters, interaction)
+        if foundat == -1:
+            return
+        character = data.characters[foundat]
+        if all_channels:
+            if 'all' in character.channels:
+                character.channels.remove('all')
+                embed = discord.Embed(description="" + character.name + " can no longer talk in every channel!", color=discord.Color.blue())
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+            else:
+                character.channels.append('all')
+                embed = discord.Embed(description="" + character.name + " can now talk in every channel!", color=discord.Color.blue())
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+        else:
+            if interaction.channel.id not in character.channels:
+                character.channels.append(interaction.channel.id)
+                embed = discord.Embed(description="" + character.name + " can now talk in this channel!", color=discord.Color.blue())
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+            else:
+                character.channels.remove(interaction.channel.id)
+                embed = discord.Embed(description="" + character.name + " can no longer talk in this channel!", color=discord.Color.blue())
+                await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command(name = "export_all", description = "Export all characters into a json file.")
     @app_commands.checks.bot_has_permissions(embed_links=True)

@@ -93,6 +93,9 @@ class Characters(commands.Cog):
             if len(character_found.channels) == 0:
                 character_channel_list = "None."
             if not isinstance(interaction.channel, discord.DMChannel) and len(character_found.channels) != 0:
+                character_channel_list = ""
+                if 'all' in character_found.channels:
+                    character_channel_list = "(Note: Given channels are excluded from all) "
                 channel_list = interaction.guild.channels
                 foundChannels = []
                 for x in range(len(character_found.channels)):
@@ -104,7 +107,7 @@ class Characters(commands.Cog):
                             break
                     if not found:
                         foundChannels.append(character_found.channels[x])
-                character_channel_list = ", ".join(foundChannels)
+                character_channel_list += ", ".join(foundChannels)
             embed = discord.Embed(title=str(foundat) + "\. " + character_found.name + " (" + str(character_found.conf.name) + ")", description=character_found.system + "\n\nChannels active: " + character_channel_list, color=discord.Color.blue())
             embed.set_thumbnail(url=character_found.icon)
             await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -133,6 +136,9 @@ class Characters(commands.Cog):
         if not isinstance(interaction.channel, discord.DMChannel) and len(character_found.channels) == 0:
             character_channel_list = "None."
         if not isinstance(interaction.channel, discord.DMChannel) and len(character_found.channels) != 0:
+            character_channel_list = ""
+            if 'all' in character_found.channels:
+                character_channel_list = "(Note: Given channels are excluded from all)"
             channel_list = interaction.guild.channels
             foundChannels = []
             for x in range(len(character_found.channels)):
@@ -144,7 +150,7 @@ class Characters(commands.Cog):
                         break
                 if not found:
                     foundChannels.append(character_found.channels[x])
-            character_channel_list = ", ".join(foundChannels)
+            character_channel_list += ", ".join(foundChannels)
         embed = discord.Embed(title=str(foundat) + "\. " + character_found.name + " (" + str(character_found.conf.name) + ")", description=character_found.system + "\n\nChannels active: " + character_channel_list, color=discord.Color.blue())
         embed.set_thumbnail(url=character_found.icon)
         await interaction.response.send_message(embed=embed, ephemeral=True)

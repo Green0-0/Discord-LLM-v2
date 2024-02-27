@@ -93,33 +93,32 @@ def format_analysis (ch : chat.Chat, channelId) -> str:
     users = []
     special_users = []
     for character in data.characters:
-        if channelId in character.channels or 'all' in character.channels:
-            namekey = "User '" + character.name + "'"
-            if namekey not in special_users:
-                special_users.append(namekey)
+        if 'all' in character.channels:
+            if channelId not in character.channels:
+                namekey = "User '" + character.name + "'"
+                if namekey not in special_users:
+                    special_users.append(namekey)
+        else:  
+            if channelId in character.channels: 
+                namekey = "User '" + character.name + "'"
+                if namekey not in special_users:
+                    special_users.append(namekey)
     for message in ch.get_messages(350, min_messages=2):
         namekey = "User '" + message.name + "'"
-        chat.append(namekey + ": " + message.text)
+        chat.append(message.name + ": " + message.text)
         if namekey not in users and namekey not in special_users:
             users.append(namekey)
-    text = "Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request."
-    text += "\n\n"
-    text += "### Instruction:"
-    text += "\n"
-    text += "Please determine the next speaker in the conversation. Output their full username."
-    text += "\n\n"
-    text += "### Input:"
-    text += "\n"
-    text += """Below is a list of regular users. These users send messages when appropriate, or when responded to or when they feel like it, but will not send two messages in a row.
-User 'John', User 'Sophia', _LIST_
-Here are some special users. Special users are particular about sending messages, they only send messages when they are explicitly mentioned or talked to in conversation. Special users will not send two messages in a row.
-User 'Nicolas', _LIST-SPECIAL_
-Conversation history:
-_HISTORY_""".replace("_LIST_", ", ".join(users)).replace("_LIST-SPECIAL_", ", ".join(special_users)).replace("_HISTORY_", "\n".join(chat))
-    text += "\n\n"
-    text += "### Response:"
-    text += "\n"
-    text += "Based on my expert analysis, the full name of the next speaker is: User '"
+    # real history is everything but the last message, and the last message says "Latest Message : xxx"
+    text = "[INST]"
+    text += """Regular users send messages when they want to say something, when they are mentioned, when nobody else will reply, etc.
+Regular users: _LIST_
+Special users send messages when they are spoken to or relevant in the latest message.
+Special users: User 'None' (if no user is relevant or mentioned, output this user),  _LIST-SPECIAL_
+When someone specifically asks a question about bot/AI/LLMs, the user is 'airo'. Otherwise, 'airo' will not speak.
+Below is the conversation history:
+_HISTORY_""".replace("_LIST_", ", ".join(users)).replace("_LIST-SPECIAL_", ", ".join(special_users)).replace("_HISTORY_", "\n".join(chat[:-1]) + "\n\n[Latest Message]: " + chat[-1])
+    text += "\nPlease determine the next speaker (regular or special user) in the conversation."
+    text += "[/INST] The next speaker is: User '"
     return text
 
 # Cog that manages all events which require an LLM response
@@ -272,7 +271,11 @@ class Messaging(commands.Cog):
         if character.name == data.get_chat(channel.id).messages[-1].name:
             self.working = False
             return
-        if channel.id not in character.channels and 'all' not in character.channels:
+        if 'all' not in character.channels:
+            if channel.id not in character.channels:
+                self.working = False
+                return
+        elif channel.id in character.channels:
             self.working = False
             return
         await self.reply (from_user, channel, character)

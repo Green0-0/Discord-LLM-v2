@@ -74,6 +74,33 @@ class Generics(commands.Cog):
             embed = discord.Embed(title="User is not an admin.", color=discord.Color.yellow())
             await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
 
+    @app_commands.command(name="quick_reload", description = "Reload without syncing slash commands.")
+    async def quick_reload(self, interaction : discord.Interaction):
+        if not await self.is_admin(interaction):
+            embed = discord.Embed(title="You do not have permission to use this command.", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+            return
+        await self.bot.change_presence(status=discord.Status.online, activity=discord.Activity(type=discord.ActivityType.watching, name=f"/help for commands, mention @{self.bot.user.name} to talk!"))
+        await interaction.response.send_message("Preparing to reload")
+        logging.info("Preparing to reload")
+        await interaction.channel.send("Loading extensions")
+        logging.info("Loading extensions")
+        for extension in data.extensions:
+            if not extension in data.skip:
+                try:
+                    if extension in self.bot.extensions:
+                        await self.bot.reload_extension(extension)
+                    else: 
+                        await self.bot.load_extension(extension)
+                except Exception as e:
+                    await interaction.channel.send("**Error loading extension:** ```" + str(e) + "```")
+                    logging.error("Error loading extension: " + str(e))
+        await interaction.channel.send("Finished loading extensions")
+        logging.info("Finished loading extensions")
+        await interaction.channel.send("Finished quick reloading")
+        logging.info("Finished quick reloading")
+        await interaction.channel.send("Note: If the bot was just turned on, please use /purge_webhooks as there will be leftover webhooks from when the bot got turned off")
+
     @app_commands.command(name = "reload", description = "After updating the source code and saving the files, this will reload the bot without losing data.")
     async def reload(self, interaction : discord.Interaction):
         if not await self.is_admin(interaction):

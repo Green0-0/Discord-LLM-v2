@@ -108,13 +108,17 @@ def format_analysis (ch : chat.Chat, channelId) -> str:
         chat.append(message.name + ": " + message.text)
         if namekey not in users and namekey not in special_users:
             users.append(namekey)
+    detect_airo = chat[-1].lower()
+    result_text = ""
+    if "ai" in detect_airo or 'llm' in detect_airo or 'bot' in detect_airo or 'aortega' in detect_airo or 'neuroengine' in detect_airo or 'agi' in detect_airo or 'api' in detect_airo:
+        result_text = "\nThe speaker is 'airo' if the latest message asks for help about SPECIFICALLY BOTS AND AI. 'Airo' will NOT be the speaker otherwise. 'Airo' will NOT respond to general questions."
     # real history is everything but the last message, and the last message says "Latest Message : xxx"
-    text = "[INST]"
-    text += """Regular users send messages when they want to say something, when they are mentioned, when nobody else will reply, etc.
+    text = "[INST] "
+    text += f"""Regular users speak when they want to say something, when they are mentioned, when nobody else will reply, etc.
 Regular users: _LIST_
-Special users send messages when they are spoken to or relevant in the latest message.
-Special users: User 'None' (if no user is relevant or mentioned, output this user),  _LIST-SPECIAL_
-When someone specifically asks a question about bot/AI/LLMs, the user is 'airo'. Otherwise, 'airo' will not speak.
+Special users speak when they are spoken to or relevant in the latest message.
+Special users: User 'None' (if no user is relevant or mentioned, output this user),  _LIST-SPECIAL_{result_text}
+Note: The speaker in the latest message will not speak again.
 Below is the conversation history:
 _HISTORY_""".replace("_LIST_", ", ".join(users)).replace("_LIST-SPECIAL_", ", ".join(special_users)).replace("_HISTORY_", "\n".join(chat[:-1]) + "\n\n[Latest Message]: " + chat[-1])
     text += "\nPlease determine the next speaker (regular or special user) in the conversation."

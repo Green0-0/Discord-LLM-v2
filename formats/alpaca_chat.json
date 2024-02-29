@@ -13,18 +13,17 @@
         "<|_NAME_",
         "USER",
         "ASSISTANT",
-        "_AI-NAME_:",
-        "_NAME_:",
         "'_NAME_':",
         "\"_NAME_\":",
-        "\n_NAME_:",
+        "\\n_NAME_:",
         "'_AI-NAME_':",
         "\"_AI-NAME_\":",
-        "\n_AI-NAME_:",
-        "<REGEX>'.+':",
+        "\\n_AI-NAME_:",
+        "REGEX'.+':",
         "User '",
         "user '",
         "User \"",
-        "user \""
+        "user \"",
+        "(Note: This response"
     ]
 }

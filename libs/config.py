@@ -55,8 +55,8 @@ class Config:
                     raise Exception("LLM Error in response: " + response)
                 response = response[len(prompt):]
                 for stopper in self.format.get_stop_criteria(character.name, other_name):
-                    if "<REGEX>" in stopper:
-                        stopper = stopper[stopper.index("<REGEX>") + 7:]
+                    if "REGEX" in stopper:
+                        stopper = stopper[stopper.index("REGEX") + 5:]
                         if stopper.startswith(" "):
                             stopper = stopper[1:]
                         # use stopper as regex to check if response matches, and if so, remove the match and everything that comes after
@@ -65,7 +65,7 @@ class Config:
                             response = response[:regex.search(response).span()[0]]
                     elif stopper in response:
                         response = response[:response.find(stopper)]
-                        break
+
                 response = response.strip()
                 for v in self.validators:
                     if not v.Validate(response, chat):

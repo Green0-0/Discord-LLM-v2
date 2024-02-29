@@ -1,8 +1,8 @@
 {
-    "template":"_SYSTEM_\n_HISTORY_USER '_NAME_': _PROMPT_\n'_AI-NAME_':",
-    "other_field_history":"USER '_NAME_': _PROMPT_",
+    "template":"[INST] Character description for _AI-NAME_: _SYSTEM_\nPlease reply in character as _AI-NAME_.[/INST]_HISTORY_[INST] '_NAME_': _PROMPT_[/INST] '_AI-NAME_':",
+    "other_field_history":"[INST] '_NAME_': _PROMPT_[/INST]",
     "ai_field_history":"'_AI-NAME_': _PROMPT_",
-    "history_joiner":"\n",
+    "history_joiner":" ",
     "stop_criteria":
     [
         "</s>", "<<SYS",
@@ -24,6 +24,6 @@
         "user '",
         "User \"",
         "user \"",
-        "(Note: This response"
+        "(Note:"
     ]
 }

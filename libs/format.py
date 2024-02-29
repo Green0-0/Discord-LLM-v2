@@ -51,7 +51,7 @@ class Format:
 
     def build_prompt(self, character : character.Character, other_name : str, context : chat.Chat, max_tokens : int, tokenizer : sentencepiece.SentencePieceProcessor, continuations : bool = False) -> str:
         history = []
-        msgs = context.get_messages(max_tokens - 30, self.template + "\n" + character.system, tokenizer)
+        msgs = context.get_messages(max_tokens - 50, self.template + "\n" + character.system, tokenizer)
         last_speaker = other_name
         for message in msgs[:len(msgs) - 1]:
             if message.name == character.name:
@@ -79,6 +79,6 @@ class Format:
         return target.replace("_NAME_", other_name).replace("_AI-NAME_", ai_name).replace("_PROMPT_", text)
 
     def get_stop_criteria(self, ai_name : str, other_name : str) -> list[str]:
-        return [self.replaceNameContent(x, ai_name, other_name, "_PROMPT_") for x in self.stop_criteria]
+        return [self.replaceNameContent(x, ai_name, other_name, "_PROMPT_").replace("\\n", "\n") for x in self.stop_criteria]
 
     

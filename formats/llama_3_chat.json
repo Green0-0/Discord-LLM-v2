@@ -1,8 +1,8 @@
 {
-    "template":"_SYSTEM_\n_HISTORY_USER '_NAME_': _PROMPT_\n'_AI-NAME_':",
-    "other_field_history":"USER '_NAME_': _PROMPT_",
-    "ai_field_history":"'_AI-NAME_': _PROMPT_",
-    "history_joiner":"\n",
+    "template":"<|start_header_id|>system<|end_header_id|>\n_SYSTEM_<|eot_id|>_HISTORY_<|start_header_id|>_NAME_<|end_header_id|>\n_PROMPT_<|eot_id|><|start_header_id|>_AI-NAME_<|end_header_id|>\n",
+    "other_field_history":"<|start_header_id|>_NAME_<|end_header_id|>\n_PROMPT_<|eot_id|>",
+    "ai_field_history":"<|start_header_id|>_AI-NAME_<|end_header_id|>\n_PROMPT_<|eot_id|>",
+    "history_joiner":"",
     "stop_criteria":
     [
         "</s>", "<<SYS",

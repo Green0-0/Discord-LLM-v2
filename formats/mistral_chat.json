@@ -13,17 +13,21 @@
         "<|_NAME_",
         "USER",
         "ASSISTANT",
+        "<|eot_id|>",
+        "<|start_header_id|>",
+        "<|end_header_id|>",
         "'_NAME_':",
         "\"_NAME_\":",
-        "\\n_NAME_:",
+        "\\\\n_NAME_:",
         "'_AI-NAME_':",
         "\"_AI-NAME_\":",
-        "\\n_AI-NAME_:",
+        "\\\\n_AI-NAME_:",
         "REGEX'.+':",
         "User '",
         "user '",
         "User \"",
         "user \"",
-        "(Note:"
+        "(Note:",
+        "\\\\nNote:"
     ]
 }

@@ -1,7 +1,7 @@
 {
-    "template":"_SYSTEM_\n_HISTORY_USER '_NAME_': _PROMPT_\n'_AI-NAME_':",
-    "other_field_history":"USER '_NAME_': _PROMPT_",
-    "ai_field_history":"'_AI-NAME_': _PROMPT_",
+    "template":"<|start_header_id|>system<|end_header_id|>\nYou are a roleplaying/storytelling ai that writes singular responses for the given character named _AI-NAME_: _SYSTEM_<|eot_id|><|start_header_id|>user<|end_header_id|>_HISTORY__NAME_:_PROMPT_\n_AI-NAME_:<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n",
+    "other_field_history":"_NAME_:_PROMPT_",
+    "ai_field_history":"_AI-NAME_:_PROMPT_",
     "history_joiner":"\n",
     "stop_criteria":
     [

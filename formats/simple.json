@@ -1,7 +1,7 @@
 {
-    "template":"_SYSTEM_\n_HISTORY_USER '_NAME_': _PROMPT_\n'_AI-NAME_':",
-    "other_field_history":"USER '_NAME_': _PROMPT_",
-    "ai_field_history":"'_AI-NAME_': _PROMPT_",
+    "template":"_SYSTEM_\n_HISTORY_>_NAME_: _PROMPT_\n>_AI-NAME_:",
+    "other_field_history":">_NAME_:_PROMPT_",
+    "ai_field_history":">_AI-NAME_:_PROMPT_",
     "history_joiner":"\n",
     "stop_criteria":
     [
@@ -28,6 +28,7 @@
         "User \"",
         "user \"",
         "(Note:",
-        "\\\\nNote:"
+        "\\\\nNote:",
+        ">"
     ]
 }

@@ -79,6 +79,6 @@ class Format:
         return target.replace("_NAME_", other_name).replace("_AI-NAME_", ai_name).replace("_PROMPT_", text)
 
     def get_stop_criteria(self, ai_name : str, other_name : str) -> list[str]:
-        return [self.replaceNameContent(x, ai_name, other_name, "_PROMPT_").replace("\\n", "\n") for x in self.stop_criteria]
+        return [self.replaceNameContent(x, ai_name, other_name, "_PROMPT_").replace("\\\\n", "\n").replace("\\\\s", " ").replace("\\\\z", "") for x in self.stop_criteria]
 
     

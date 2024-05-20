@@ -2,19 +2,25 @@ import sentencepiece
 
 # Represents a single message
 class Message:
+    # parts
+    # character
     name : str
     text : str
     len : int
 
-    def __init__(self, name : str, text : str, len : int):
+    def __init__(self, name : str, text : str, len : int, parts = None, character = None):
         self.name = name
         self.text = text
         self.len = len
+        self.parts = parts
+        self.character = character
 
-    def __init__(self, name : str, text : str, tokenizer : sentencepiece.SentencePieceProcessor):
+    def __init__(self, name : str, text : str, tokenizer : sentencepiece.SentencePieceProcessor, parts = None, character = None):
         self.name = name
         self.text = text
         self.len = len(tokenizer.EncodeAsIds(text))
+        self.parts = parts
+        self.character = character
 
 # Contains a conversation between two or more characters
 class Chat:

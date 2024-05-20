@@ -2,6 +2,7 @@
 import asyncio
 import logging
 from functools import partial, wraps
+import time
 def to_thread(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
@@ -65,8 +66,9 @@ class Config:
                             response = response[:regex.search(response).span()[0]]
                     elif stopper in response:
                         response = response[:response.find(stopper)]
-
                 response = response.strip()
+                if response[0] == response[-1] and response[0] == "\"":
+                    response = response[1:-1]
                 for v in self.validators:
                     if not v.Validate(response, chat):
                         response = ""
@@ -79,6 +81,7 @@ class Config:
                 logging.info("!!! ERROR !!!")
                 logging.error(error)
                 logging.info("-------------")
+                time.sleep(2)
         if response == "":
             raise Exception("Failed to generate response because of error:\n'" + error + "'")
             return "(error)"

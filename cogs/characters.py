@@ -69,7 +69,7 @@ class Characters(commands.Cog):
         text = []
         # Creates a numbered list
         for x in range(len(data.characters)):
-            text.append("" + str(x) + "\. " + data.characters[x].name + " (" + str(data.characters[x].conf.name) + ")")
+            text.append("" + str(x) + ". " + data.characters[x].name + " (" + str(data.characters[x].conf.name) + ")")
         final_text = "\n".join(text)
         embed = discord.Embed(title="Characters", description=final_text, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -108,7 +108,7 @@ class Characters(commands.Cog):
                     if not found:
                         foundChannels.append(character_found.channels[x])
                 character_channel_list += ", ".join(foundChannels)
-            embed = discord.Embed(title=str(foundat) + "\. " + character_found.name + " (" + str(character_found.conf.name) + ")", description=character_found.system + "\n\nChannels active: " + character_channel_list, color=discord.Color.blue())
+            embed = discord.Embed(title=str(foundat) + ". " + character_found.name + " (" + str(character_found.conf.name) + ")", description=character_found.system + "\n\nChannels active: " + character_channel_list, color=discord.Color.blue())
             embed.set_thumbnail(url=character_found.icon)
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -151,7 +151,7 @@ class Characters(commands.Cog):
                 if not found:
                     foundChannels.append(character_found.channels[x])
             character_channel_list += ", ".join(foundChannels)
-        embed = discord.Embed(title=str(foundat) + "\. " + character_found.name + " (" + str(character_found.conf.name) + ")", description=character_found.system + "\n\nChannels active: " + character_channel_list, color=discord.Color.blue())
+        embed = discord.Embed(title=str(foundat) + ". " + character_found.name + " (" + str(character_found.conf.name) + ")", description=character_found.system + "\n\nChannels active: " + character_channel_list, color=discord.Color.blue())
         embed.set_thumbnail(url=character_found.icon)
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -384,9 +384,9 @@ class Characters(commands.Cog):
             # Adds the dropdown to our view object.
             self.add_item(parent.UnlockCharacter_selectmenu(parent, all_channels))
 
-    @app_commands.command(name = "unlock_character", description = "Allow a character into this channel.")
+    @app_commands.command(name = "disable_character", description = "Allow a character to speak in this channel.")
     @app_commands.checks.bot_has_permissions(embed_links=True)
-    async def unlock_character(self, interaction : discord.Interaction, id : str = "-1", all_channels : bool = False):
+    async def disable_character(self, interaction : discord.Interaction, id : str = "-1", all_channels : bool = False):
         if not await self.is_admin(interaction):
             embed = discord.Embed(title="You do not have permission to use this command.", color=discord.Color.yellow())
             await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)

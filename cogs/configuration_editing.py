@@ -237,7 +237,7 @@ class Configuration_Editing(commands.Cog):
                     embed = discord.Embed(title="Config is used in character '" + data.characters[x].name + "'.", color=discord.Color.yellow())
                     await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
                     return
-            removed = data.configs.pop(ifoundat)
+            removed = data.configs.pop(foundat)
             embed = discord.Embed(description="Successfully deleted '" + removed.name + "'!", color=discord.Color.blue())
             await interaction.response.send_message(embed=embed, ephemeral=True)
             await interaction.edit_original_response(view = None)
@@ -451,7 +451,7 @@ class Configuration_Editing(commands.Cog):
             # Adds the dropdown to our view object.
             self.add_item(parent.ChangeAnalysisModel_selectmenu(parent))
 
-    @app_commands.command(name = "change_queue_analyzer_model", description = "Edit a model's context length.")
+    @app_commands.command(name = "change_queue_analyzer_model", description = "Change the model used to determine the next speaker.")
     @app_commands.checks.bot_has_permissions(embed_links=True)
     async def change_queue_analyzer_model(self, interaction : discord.Interaction, id : str = "-1"):
         if not await self.is_admin(interaction):
@@ -469,6 +469,52 @@ class Configuration_Editing(commands.Cog):
         model_found = data.models[foundat]
         data.analysis_config.model = model_found
         embed = discord.Embed(description="Successfully set the queue analyzer to use '" + model_found.name + "'!", color=discord.Color.blue())
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        
+    # A select menu is basically a dropdown where the user has to pick one of the options
+    # A select menu that lets an admin edit the context length of a model
+    class ChangeAnalysisFormat_selectmenu(discord.ui.Select):
+        def __init__(self, parent):
+            self.parent = parent
+            options = []
+            for i in range (len(data.formats)):
+                options.append(discord.SelectOption(label=i, description=data.formats[i].name))
+
+            super().__init__(placeholder='Select a prompt format for the queue analyzer to use:', min_values=1, max_values=1, options=options)
+
+        async def callback(self, interaction: discord.Interaction):
+            foundat = int(self.values[0])
+            format_found = data.formats[foundat]
+            data.analysis_format = format_found
+            embed = discord.Embed(description="Successfully set the queue analyzer to use format '" + format_found.name + "'!", color=discord.Color.blue())
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    # Attaches the above select menu to a view
+    class ChangeAnalysisFormatView(discord.ui.View):
+        def __init__(self, parent):
+            super().__init__()
+
+            # Adds the dropdown to our view object.
+            self.add_item(parent.ChangeAnalysisFormat_selectmenu(parent))
+
+    @app_commands.command(name = "change_queue_analyzer_format", description = "Change the prompt format used to determine the next speaker.")
+    @app_commands.checks.bot_has_permissions(embed_links=True)
+    async def change_queue_analyzer_format(self, interaction : discord.Interaction, id : str = "-1"):
+        if not await self.is_admin(interaction):
+            embed = discord.Embed(title="You do not have permission to use this command.", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+            return
+        if id == "-1":
+            view = self.ChangeAnalysisFormatView(self)
+            embed = discord.Embed(description="Select a prompt format for the queue analyzer to use:", color=discord.Color.blue())
+            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+            return
+        foundat = await search_for_data(id, data.formats, interaction)
+        if foundat == -1:
+            return
+        format_found = data.formats[foundat]
+        data.analysis_format = format_found
+        embed = discord.Embed(description="Successfully set the queue analyzer to use format '" + format_found.name + "'!", color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command(name = "create_validator", description = "Create a validator.")
@@ -752,13 +798,15 @@ class Configuration_Editing(commands.Cog):
 
             text = f.template
             if text.startswith(" "):
-                text = "\\s" + text[1:]
+                text = "\\\\s" + text[1:]
             if text.endswith(" "):
-                text = text[:-1] + "\\s"
+                text = text[:-1] + "\\\\s"
             if text.startswith("\n"):
-                text = "\\n" + text[1:]
+                text = "\\\\n" + text[1:]
             if text.endswith("\n"):
-                text = text[:-1] + "\\n"
+                text = text[:-1] + "\\\\n"
+            if text == "":
+                text = "\\\\z"
 
             self.add_item(discord.ui.TextInput(
                 label = "Template:", 
@@ -769,13 +817,15 @@ class Configuration_Editing(commands.Cog):
 
             text = f.other_field_history
             if text.startswith(" "):
-                text = "\\s" + text[1:]
+                text = "\\\\s" + text[1:]
             if text.endswith(" "):
-                text = text[:-1] + "\\s"
+                text = text[:-1] + "\\\\s"
             if text.startswith("\n"):
-                text = "\\n" + text[1:]
+                text = "\\\\n" + text[1:]
             if text.endswith("\n"):
-                text = text[:-1] + "\\n"
+                text = text[:-1] + "\\\\n"
+            if text == "":
+                text = "\\\\z"
 
             self.add_item(discord.ui.TextInput(
                 label = "Other Field History:",
@@ -786,13 +836,15 @@ class Configuration_Editing(commands.Cog):
 
             text = f.ai_field_history
             if text.startswith(" "):
-                text = "\s" + text[1:]
+                text = "\\\\s" + text[1:]
             if text.endswith(" "):
-                text = text[:-1] + "\s"
+                text = text[:-1] + "\\\\s"
             if text.startswith("\n"):
-                text = "\\n" + text[1:]
+                text = "\\\\n" + text[1:]
             if text.endswith("\n"):
-                text = text[:-1] + "\\n"
+                text = text[:-1] + "\\\\n"
+            if text == "":
+                text = "\\\\z"
 
             self.add_item(discord.ui.TextInput(
                 label = "AI Field History:",
@@ -802,7 +854,9 @@ class Configuration_Editing(commands.Cog):
             ))
 
             text = f.history_joiner
-            text = text.replace(" ", "\\s").replace("\n", "\\n")
+            text = text.replace(" ", "\\\\s").replace("\n", "\\\\n")
+            if text == "":
+                text = "\\\\z"
 
             self.add_item(discord.ui.TextInput(
                 label = "History Joiner:",
@@ -811,7 +865,7 @@ class Configuration_Editing(commands.Cog):
                 required = True
             ))
 
-            text = '\n'.join(f.stop_criteria).replace(" ", "\\s")
+            text = '\n'.join(f.stop_criteria).replace(" ", "\\\\s")
 
             self.add_item(discord.ui.TextInput(
                 label = "Stop Criteria:",
@@ -823,11 +877,11 @@ class Configuration_Editing(commands.Cog):
         # Called when the user submits the modal
         async def on_submit(self, interaction : discord.Interaction):
             # Finally, edit the params
-            self.f.template = self.children[0].value.replace("\\s", " ").replace("\s", " ").replace("\\n", "\n")
-            self.f.other_field_history = self.children[1].value.replace("\\s", " ").replace("\s", " ").replace("\\n", "\n")
-            self.f.ai_field_history = self.children[2].value.replace("\\s", " ").replace("\s", " ").replace("\\n", "\n")
-            self.f.history_joiner = self.children[3].value.replace("\\s", " ").replace("\s", " ").replace("\\n", "\n")
-            self.f.stop_criteria = self.children[4].value.replace("\\s", " ").replace("\s", " ").split("\n")
+            self.f.template = self.children[0].value.replace("\\\\s", " ").replace("\\\\n", "\n").replace("\\\\z", "")
+            self.f.other_field_history = self.children[1].value.replace("\\\\s", " ").replace("\\\\n", "\n").replace("\\\\z", "")
+            self.f.ai_field_history = self.children[2].value.replace("\\\\s", " ").replace("\\\\n", "\n").replace("\\\\z", "")
+            self.f.history_joiner = self.children[3].value.replace("\\\\s", " ").replace("\\\\n", "\n").replace("\\\\z", "")
+            self.f.stop_criteria = self.children[4].value.replace(" ", "\\\\s").split("\n")
             embed = discord.Embed(title="Successfully edited " + self.f.name + "!", color=discord.Color.blue())
             await interaction.response.send_message(embed=embed, ephemeral=True)
 

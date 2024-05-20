@@ -34,7 +34,8 @@ async def search_for_data(id : str, items : list, interaction : discord.Interact
         return -1
 
 # Sends a message using webhooks (if possible) to roleplay as a defined character with custom avatar and name
-async def send_message_as_character(channel, message : str, character : character.Character):
+async def send_message_as_character(channel, message : str, character : character.Character) -> list:
+    sent_content = []
     # Webhooks do not work in dm, so roleplay is not possible. Simply sends the message.
     if isinstance(channel, discord.DMChannel):
         if (len(message) > 1900):
@@ -52,13 +53,16 @@ async def send_message_as_character(channel, message : str, character : characte
                     message_text = "```" + message_text + "```"
                     
                 if (i == 0):
-                    await channel.send("From " + character.name + ": " + message_text)
+                    w = await channel.send("From " + character.name + ": " + message_text)
+                    sent_content.append(w)
                 else:
-                    await channel.send(message_text)
+                    w = await channel.send(message_text)
+                    sent_content.append(w)
         else:
             if (message.count("```") % 2 != 0):
                 message = message + "```"
-            await channel.send("From " + character.name + ": " + message)
+            w = await channel.send("From " + character.name + ": " + message)
+            sent_content.append(w)
         
     else: 
         # Tries to find a webhook from the cache, if not found uses a new one.
@@ -77,52 +81,58 @@ async def send_message_as_character(channel, message : str, character : characte
                         message_text =  message_text + "```"
                         appending_code = True
                 if isinstance(channel, discord.Thread):
-                    await webhook.send(message_text, thread=channel)
+                    w = await webhook.send(message_text, thread=channel, wait=True)
+                    sent_content.append(w)
                 else:
-                    await webhook.send(message_text)
+                    w = await webhook.send(message_text, wait=True)
+                    sent_content.append(w)
         else:
             if (message.count("```") % 2 != 0):
                 message = message + "```"
             if isinstance(channel, discord.Thread):
-                await webhook.send(message, thread=channel)
+                w = await webhook.send(message, thread=channel, wait=True)
+                sent_content.append(w)
             else:
-                await webhook.send(message)
+                w = await webhook.send(message, wait=True)
+                sent_content.append(w)
 
-def format_analysis (ch : chat.Chat, channelId) -> str:
-    chat = []
+    return sent_content
+
+def format_analysis (ch : chat.Chat, channelId, character=character) -> str:    
+    conv = []
     users = []
     special_users = []
-    for character in data.characters:
-        if 'all' in character.channels:
-            if channelId not in character.channels:
-                namekey = "User '" + character.name + "'"
+    for chh in data.characters:
+        if 'all' in chh.channels:
+            if channelId not in chh.channels:
+                namekey = "User '" + chh.name + "'"
                 if namekey not in special_users:
                     special_users.append(namekey)
         else:  
-            if channelId in character.channels: 
-                namekey = "User '" + character.name + "'"
+            if channelId in chh.channels: 
+                namekey = "User '" + chh.name + "'"
                 if namekey not in special_users:
                     special_users.append(namekey)
+    if len(special_users) == 0:
+        return ""
     for message in ch.get_messages(350, min_messages=2):
         namekey = "User '" + message.name + "'"
-        chat.append(message.name + ": " + message.text)
+        conv.append(message.name + ": " + message.text)
         if namekey not in users and namekey not in special_users:
             users.append(namekey)
-    detect_airo = chat[-1].lower()
-    result_text = ""
-    if "ai" in detect_airo or 'llm' in detect_airo or 'bot' in detect_airo or 'aortega' in detect_airo or 'neuroengine' in detect_airo or 'agi' in detect_airo or 'api' in detect_airo:
-        result_text = "\nThe speaker is 'airo' if the latest message asks for help about SPECIFICALLY BOTS AND AI. 'Airo' will NOT be the speaker otherwise. 'Airo' will NOT respond to general questions."
     # real history is everything but the last message, and the last message says "Latest Message : xxx"
-    text = "[INST] "
-    text += f"""Regular users speak when they want to say something, when they are mentioned, when nobody else will reply, etc.
+    finalmsg = f"""Regular users speak when they want to say something, when they are mentioned, when nobody else will reply, etc.
 Regular users: _LIST_
 Special users speak when they are spoken to or relevant in the latest message.
-Special users: User 'None' (if no user is relevant or mentioned, output this user),  _LIST-SPECIAL_{result_text}
+Special users: User 'None' (if no user is relevant or mentioned, output this user),  _LIST-SPECIAL_
 Note: The speaker in the latest message will not speak again.
 Below is the conversation history:
-_HISTORY_""".replace("_LIST_", ", ".join(users)).replace("_LIST-SPECIAL_", ", ".join(special_users)).replace("_HISTORY_", "\n".join(chat[:-1]) + "\n\n[Latest Message]: " + chat[-1])
-    text += "\nPlease determine the next speaker (regular or special user) in the conversation."
-    text += "[/INST] The next speaker is: User '"
+_HISTORY_""".replace("_LIST_", ", ".join(users)).replace("_LIST-SPECIAL_", ", ".join(special_users)).replace("_HISTORY_", "\n".join(conv[:-1]) + "\n\n[Latest Message]: " + conv[-1])
+    finalmsg += "\nPlease determine the next speaker (regular or special user) in the conversation."
+    c = character.Character(None, "assistant", "", "You are a helpful assistant.")
+    ch = chat.Chat(finalmsg, tokenizer=data.tokenizer)
+    text = data.analysis_format.build_prompt(c, "user", ch, 4000, data.tokenizer)    
+    text += "The next speaker is: User '"
     return text
 
 # Cog that manages all events which require an LLM response
@@ -179,6 +189,10 @@ class Messaging(commands.Cog):
                 embed = discord.Embed(description="Currently busy...", color=discord.Color.yellow())
                 await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
                 return
+            if len(data.get_chat(interaction.channel.id).messages) == 0:
+                embed = discord.Embed(description="Nothing to reply to!", color=discord.Color.yellow())
+                await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+                return
             await interaction.response.edit_message(view = None)
             char = data.characters[int(self.values[0])]
             await self.parent.reply(self.from_user, interaction.channel, char)
@@ -198,6 +212,10 @@ class Messaging(commands.Cog):
             embed = discord.Embed(description="Currently busy...", color=discord.Color.yellow())
             await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
             return
+        if len(data.get_chat(interaction.channel.id).messages) == 0:
+            embed = discord.Embed(description="Nothing to reply to!", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+            return
         if id == "-1":
             view = self.ReplyCharacterView(self, interaction.user.display_name)
             embed = discord.Embed(description="Select a character:", color=discord.Color.blue())
@@ -209,30 +227,59 @@ class Messaging(commands.Cog):
         self.working = True
         await interaction.response.send_message("✔", ephemeral=True, delete_after=1)
         await self.reply(interaction.user.display_name, interaction.channel, data.characters[foundat])
+        
+    @app_commands.command(name = "delete_last", description = "Deletes the last sent AI message OR your own message.")
+    @app_commands.checks.bot_has_permissions(manage_messages=True)
+    async def delete_last(self, interaction : discord.Interaction):
+        chat = data.get_chat(interaction.channel.id)
+        if len(chat.messages) == 0:
+            embed = discord.Embed(description="Nothing to delete!", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+            return
+        if chat.messages[-1].name != interaction.user.display_name and chat.messages[-1].character == None:
+            embed = discord.Embed(description="Only your own messages/AI messages can be deleted!", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+            return
+        for p in chat.messages[-1].parts:
+            await p.delete()
+        chat.messages.pop()
+        await interaction.response.send_message("✔", ephemeral=True, delete_after=1)
+        
+    @app_commands.command(name = "retry_last", description = "Retries the last AI sent message.")
+    @app_commands.checks.bot_has_permissions(embed_links=True)
+    async def retry_last(self, interaction : discord.Interaction):
+        if self.working == True:
+            embed = discord.Embed(description="Currently busy...", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+            return
+        if len(data.get_chat(interaction.channel.id).messages) == 0:
+            embed = discord.Embed(description="Nothing to retry!", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+            return
+        chat = data.get_chat(interaction.channel.id)
+        target_character = chat.messages[-1].character
+        if target_character == None:
+            embed = discord.Embed(description="Only AI messages can be retried!", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+            return
+        for p in chat.messages[-1].parts:
+            await p.delete()
+        chat.messages.pop()
+        await interaction.response.send_message("✔", ephemeral=True, delete_after=1)
+        await self.reply(chat.messages[-1].name, interaction.channel, target_character)
 
     # Bot receives mentions and responds to them using the current character with the AI
     @commands.Cog.listener()
     async def on_message(self, message : discord.Message):
-        if message.author.id == self.bot.user.id and not isinstance(message.channel, discord.DMChannel):
-            return
-        if ("From" not in message.content or ":" not in message.content) and isinstance(message.channel, discord.DMChannel) and message.author.id == self.bot.user.id:
-            return
         if message.content == "":
-            return
-        if message.content == "*thinking*" or (": *thinking*" in message.content and "From" in message.content):
-            return
-        if message.content == "✔":
             return
         if message.clean_content.startswith("-"):
             return
-        if isinstance(message.channel, discord.DMChannel) and message.author.id == self.bot.user.id:
-            from_user = message.clean_content.split(":")[0].split("From ")[1]
-            content = message.clean_content.split(":")[1]
-            data.get_chat(message.channel.id).append(chat.Message(from_user, content, data.tokenizer))
-        else:
-            data.get_chat(message.channel.id).append(chat.Message(message.author.display_name, message.clean_content, data.tokenizer))
+        if message.webhook_id != None:
+            return
         if message.author.id == self.bot.user.id:
             return
+        data.get_chat(message.channel.id).append(chat.Message(message.author.display_name, message.clean_content, data.tokenizer, [message]))
         if self.working == True:
             return
         if not isinstance(message.channel, discord.DMChannel):
@@ -244,18 +291,17 @@ class Messaging(commands.Cog):
         await self.read (message.author.display_name, message.clean_content, message.channel)
     
     async def read (self, from_user : str, content : str, channel):
-        if len(data.get_chat(channel.id).messages) == 0:
-            return
-
         self.working = True
-
         try:
-            analysis = await data.analysis_config.queue(chat.Chat(format_analysis(data.get_chat(channel.id), channel.id), data.tokenizer), data.characters[0], "", data.tokenizer)
+            msg = format_analysis(data.get_chat(channel.id), channel.id)
+            if msg == "":
+                self.working = False
+                return
+            analysis = await data.analysis_config.queue(chat.Chat(msg, data.tokenizer), data.characters[0], "", data.tokenizer)
         except Exception as e:
             logging.error(e)
             self.working = False
             return
-
         if analysis.find("'") != -1:
             analysis = analysis[:analysis.find("'")]
         character_names = []
@@ -295,6 +341,7 @@ class Messaging(commands.Cog):
             await channel.send(embed=embed)
             self.working = False
             return
-        await send_message_as_character(channel, response, character)
+        w = await send_message_as_character(channel, response, character)
+        data.get_chat(channel.id).append(chat.Message(character.name, response, data.tokenizer, w, character))
         self.working = False
         await self.read(character.name, response, channel)

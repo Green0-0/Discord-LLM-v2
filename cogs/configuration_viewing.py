@@ -69,7 +69,7 @@ class Configuration_Viewing(commands.Cog):
         text = []
         # Creates a numbered list
         for x in range(len(data.configs)):
-            text.append(str(x) + "\. " + data.configs[x].name)
+            text.append(str(x) + ". " + data.configs[x].name)
         final_text = "\n".join(text)
         embed = discord.Embed(title="Configs", description=final_text, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -91,7 +91,7 @@ class Configuration_Viewing(commands.Cog):
             s = "- Model: " + config_found.model.name
             s += "\n- Format: " + config_found.format.name
             s += "\n- Validators: " + str(len(config_found.validators))
-            embed = discord.Embed(title=str(foundat) + "\. " + config_found.name, description=s, color=discord.Color.blue())
+            embed = discord.Embed(title=str(foundat) + ". " + config_found.name, description=s, color=discord.Color.blue())
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
     # Attaches the above select menu to a view
@@ -118,7 +118,7 @@ class Configuration_Viewing(commands.Cog):
         s += "\n- Format: " + config_found.format.name
         s += "\n - Sampling Preset: " + config_found.params.name
         s += "\n- Validators: " + str(len(config_found.validators))
-        embed = discord.Embed(title=str(foundat) + "\. " + config_found.name, description=s, color=discord.Color.blue())
+        embed = discord.Embed(title=str(foundat) + ". " + config_found.name, description=s, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     
@@ -130,7 +130,7 @@ class Configuration_Viewing(commands.Cog):
             text = []
             # Creates a numbered list
             for x in range(len(ls)):
-                text.append("" + str(x) + "\. " + ls[x]['name'] + " (Queue: " + str(ls[x]['queuelen']) + ")")
+                text.append("" + str(x) + ". " + ls[x]['name'] + " (Queue: " + str(ls[x]['queuelen']) + ")")
         except Exception as e:
             logging.error(e)
             embed = discord.Embed(title="Exception", description=str(e), color=discord.Color.red())
@@ -147,7 +147,7 @@ class Configuration_Viewing(commands.Cog):
         text = []
         # Creates a numbered list
         for x in range(len(data.models)):
-            text.append("" + str(x) + "\. " + data.models[x].name + " (" + str(data.models[x].context_length) + " ctx)")
+            text.append("" + str(x) + ". " + data.models[x].name + " (" + str(data.models[x].context_length) + " ctx)")
         final_text = "\n".join(text)
         embed = discord.Embed(title="Models", description=final_text, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -158,7 +158,7 @@ class Configuration_Viewing(commands.Cog):
         text = []
         # Creates a numbered list
         for x in range(len(data.paramss)):
-            text.append(str(x) + "\. " + data.paramss[x].name)
+            text.append(str(x) + ". " + data.paramss[x].name)
         final_text = "\n".join(text)
         embed = discord.Embed(title="Sampling Presets", description=final_text, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -183,7 +183,7 @@ class Configuration_Viewing(commands.Cog):
             s += "\n- Top K: " + str(params_found.top_k)
             s += "\n- Repetition Penalty: " + str(params_found.repetition_penalty)
             s += "\n- Max New Tokens: " + str(params_found.max_new_tokens)
-            embed = discord.Embed(title=str(foundat) + "\. " + params_found.name, description=s, color=discord.Color.blue())
+            embed = discord.Embed(title=str(foundat) + ". " + params_found.name, description=s, color=discord.Color.blue())
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
     # Attaches the above select menu to a view
@@ -212,7 +212,7 @@ class Configuration_Viewing(commands.Cog):
         s += "\n- Top K: " + str(params_found.top_k)
         s += "\n- Repetition Penalty: " + str(params_found.repetition_penalty)
         s += "\n- Max New Tokens: " + str(params_found.max_new_tokens)
-        embed = discord.Embed(title=str(foundat) + "\. " + params_found.name, description=s, color=discord.Color.blue())
+        embed = discord.Embed(title=str(foundat) + ". " + params_found.name, description=s, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command(name = "list_formats", description = "List all the set up prompt formats.")
@@ -221,7 +221,7 @@ class Configuration_Viewing(commands.Cog):
         text = []
         # Creates a numbered list
         for x in range(len(data.formats)):
-            text.append(str(x) + "\. " + data.formats[x].name)
+            text.append(str(x) + ". " + data.formats[x].name)
         final_text = "\n".join(text)
         embed = discord.Embed(title="Prompt Formats", description=final_text, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -242,45 +242,54 @@ class Configuration_Viewing(commands.Cog):
             format_found = data.formats[foundat]
             text = format_found.template
             if text.startswith(" "):
-                text = "\s" + text[1:]
+                text = "\\\\s" + text[1:]
             if text.endswith(" "):
-                text = text[:-1] + "\s"
+                text = text[:-1] + "\\\\s"
             if text.startswith("\n"):
-                text = "\\n" + text[1:]
+                text = "\\\\n" + text[1:]
             if text.endswith("\n"):
-                text = text[:-1] + "\\n"
+                text = text[:-1] + "\\\\n"
+            if text == "":
+                text = "\\\\z"
             s = "Template:\n```" + text + "```"
 
             text = format_found.other_field_history
             if text.startswith(" "):
-                text = "\s" + text[1:]
+                text = "\\\\s" + text[1:]
             if text.endswith(" "):
-                text = text[:-1] + "\s"
+                text = text[:-1] + "\\\\s"
             if text.startswith("\n"):
-                text = "\\n" + text[1:]
+                text = "\\\\n" + text[1:]
             if text.endswith("\n"):
-                text = text[:-1] + "\\n"
+                text = text[:-1] + "\\\\n"
+            if text == "":
+                text = "\\\\z"
             s += "Other Field History:\n```" + text + "```\n"
 
             text = format_found.ai_field_history
             if text.startswith(" "):
-                text = "\s" + text[1:]
+                text = "\\\\s" + text[1:]
             if text.endswith(" "):
-                text = text[:-1] + "\s"
+                text = text[:-1] + "\\\\s"
             if text.startswith("\n"):
-                text = "\\n" + text[1:]
+                text = "\\\\n" + text[1:]
             if text.endswith("\n"):
-                text = text[:-1] + "\\n"
+                text = text[:-1] + "\\\\n"
+            if text == "":
+                text = "\\\\z"
             s += "AI Field History:\n```" + text + "```\n"
 
             text = format_found.history_joiner
-            text = text.replace(" ", "\\s").replace("\n", "\\n")
+            text = text.replace(" ", "\\\\s").replace("\n", "\\\\n")
+            if text == "":
+                text = "\\\\z"
+                
             s += "History Joiner:\n```" + text + "```\n"
 
-            text = '\n'.join(format_found.stop_criteria).replace(" ", "\\s")
+            text = '\n'.join(format_found.stop_criteria).replace(" ", "\\\\s")
             s += "Stop Criteria:\n```" + text + "```"
             
-            embed = discord.Embed(title=str(foundat) + "\. " + format_found.name, description=s, color=discord.Color.blue())
+            embed = discord.Embed(title=str(foundat) + ". " + format_found.name, description=s, color=discord.Color.blue())
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
     # Attaches the above select menu to a view
@@ -306,45 +315,54 @@ class Configuration_Viewing(commands.Cog):
         
         text = format_found.template
         if text.startswith(" "):
-            text = "\s" + text[1:]
+            text = "\\\\s" + text[1:]
         if text.endswith(" "):
-            text = text[:-1] + "\s"
+            text = text[:-1] + "\\\\s"
         if text.startswith("\n"):
-            text = "\\n" + text[1:]
+            text = "\\\\n" + text[1:]
         if text.endswith("\n"):
-            text = text[:-1] + "\\n"
+            text = text[:-1] + "\\\\n"
+        if text == "":
+            text = "\\\\z"
         s = "Template:\n```" + text + "```"
 
         text = format_found.other_field_history
         if text.startswith(" "):
-            text = "\s" + text[1:]
+            text = "\\\\s" + text[1:]
         if text.endswith(" "):
-            text = text[:-1] + "\s"
+            text = text[:-1] + "\\\\s"
         if text.startswith("\n"):
-            text = "\\n" + text[1:]
+            text = "\\\\n" + text[1:]
         if text.endswith("\n"):
-            text = text[:-1] + "\\n"
+            text = text[:-1] + "\\\\n"
+        if text == "":
+            text = "\\\\z"
         s += "Other Field History:\n```" + text + "```\n"
 
         text = format_found.ai_field_history
         if text.startswith(" "):
-            text = "\s" + text[1:]
+            text = "\\\\s" + text[1:]
         if text.endswith(" "):
-            text = text[:-1] + "\s"
+            text = text[:-1] + "\\\\s"
         if text.startswith("\n"):
-            text = "\\n" + text[1:]
+            text = "\\\\n" + text[1:]
         if text.endswith("\n"):
-            text = text[:-1] + "\\n"
+            text = text[:-1] + "\\\\n"
+        if text == "":
+            text = "\\\\z"
         s += "AI Field History:\n```" + text + "```\n"
 
         text = format_found.history_joiner
-        text = text.replace(" ", "\\s").replace("\n", "\\n")
+        text = text.replace(" ", "\\\\s").replace("\n", "\\\\n")
+        if text == "":
+            text = "\\\\z"
+            
         s += "History Joiner:\n```" + text + "```\n"
 
-        text = '\n'.join(format_found.stop_criteria).replace(" ", "\\s")
+        text = '\n'.join(format_found.stop_criteria).replace(" ", "\\\\s")
         s += "Stop Criteria:\n```" + text + "```"
         
-        embed = discord.Embed(title=str(foundat) + "\. " + format_found.name, description=s, color=discord.Color.blue())
+        embed = discord.Embed(title=str(foundat) + ". " + format_found.name, description=s, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command(name = "list_valids", description = "List all the set up validators.")
@@ -354,7 +372,7 @@ class Configuration_Viewing(commands.Cog):
         # Creates a numbered list
         for x in range(len(data.validators)):
             c = data.validators[x]
-            s = "" + str(x) + "\. ``" + str(c) + "``"
+            s = "" + str(x) + ". ``" + str(c) + "``"
             text.append(s)
         final_text = "\n".join(text)
         embed = discord.Embed(title="Validators", description=final_text, color=discord.Color.blue())

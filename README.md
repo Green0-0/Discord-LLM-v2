@@ -4,11 +4,13 @@ I do not plan to add support for togetherAI/local, however, it should be fairly 
 FEATURES:
 - Deploy any number of characters (though recommended to keep it under 15) with a single discord bot that respond naturally in conversations
 - Characters can be toggled on and off per channel (/toggle_character), and they can be forced to reply with /reply_as
+- Retry responses with /retry_last, delete responses with /delete_last, clear memory with /clear_memory
 
 ![image](https://github.com/Green0-0/Discord-LLM-v2/assets/138409197/18240302-5ee3-4496-ba8a-74a083552e29)
 ![image](https://github.com/Green0-0/Discord-LLM-v2/assets/138409197/903b04b7-eaa0-4876-b720-19e72053ed88)
 
 - Create, edit, and view character system prompts/profiles (/create_character, /edit_character, /view_character)
+
 ![image](https://github.com/Green0-0/Discord-LLM-v2/assets/138409197/886166ac-35d2-4227-977e-530ffe8ac87e)
 
 - Modify and create new prompt formats with my own formatting markdown (/edit_format, /create_format, /view_format)

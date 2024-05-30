@@ -3,6 +3,7 @@ import asyncio
 import logging
 from functools import partial, wraps
 import time
+import traceback
 def to_thread(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
@@ -78,8 +79,9 @@ class Config:
             except Exception as e:
                 response = ""
                 error = str(e)
+                tb = traceback.format_exc()
                 logging.info("!!! ERROR !!!")
-                logging.error(error)
+                logging.error(tb)
                 logging.info("-------------")
                 time.sleep(2)
         if response == "":

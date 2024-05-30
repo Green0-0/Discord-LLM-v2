@@ -1,0 +1,33 @@
+{
+    "template":"_HISTORY_<|user|>_NAME_\n_PROMPT_\n<|im_end|>\n<|im_start|>_AI-NAME_\n",
+    "other_field_history":"<|im_start|>_NAME_\n_PROMPT_\n<|im_end|>",
+    "ai_field_history":"<|im_start|>_AI-NAME_\n_PROMPT_\n<|im_end|>",
+    "history_joiner":"\n",
+    "stop_criteria":
+    [
+        "</s>", "<<SYS",
+        "[INST", "[/INST", 
+        "###", 
+        "<|im",
+        "<|_AI-NAME_",
+        "<|_NAME_",
+        "USER",
+        "ASSISTANT",
+        "<|eot_id|>",
+        "<|start_header_id|>",
+        "<|end_header_id|>",
+        "'_NAME_':",
+        "\"_NAME_\":",
+        "\\\\n_NAME_:",
+        "'_AI-NAME_':",
+        "\"_AI-NAME_\":",
+        "\\\\n_AI-NAME_:",
+        "REGEX'.+':",
+        "User '",
+        "user '",
+        "User \"",
+        "user \"",
+        "(Note:",
+        "\\\\nNote:"
+    ]
+}

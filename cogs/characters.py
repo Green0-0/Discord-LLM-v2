@@ -108,7 +108,7 @@ class Characters(commands.Cog):
                     if not found:
                         foundChannels.append(character_found.channels[x])
                 character_channel_list += ", ".join(foundChannels)
-            embed = discord.Embed(title=str(foundat) + ". " + character_found.name + " (" + str(character_found.conf.name) + ")", description=character_found.system + "\n\nChannels active: " + character_channel_list, color=discord.Color.blue())
+            embed = discord.Embed(title=str(foundat) + ". " + character_found.name + " (" + str(character_found.conf.name) + ")", description="```" + character_found.system + "```" + "\nChannels active: " + character_channel_list, color=discord.Color.blue())
             embed.set_thumbnail(url=character_found.icon)
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -151,7 +151,7 @@ class Characters(commands.Cog):
                 if not found:
                     foundChannels.append(character_found.channels[x])
             character_channel_list += ", ".join(foundChannels)
-        embed = discord.Embed(title=str(foundat) + ". " + character_found.name + " (" + str(character_found.conf.name) + ")", description=character_found.system + "\n\nChannels active: " + character_channel_list, color=discord.Color.blue())
+        embed = discord.Embed(title=str(foundat) + ". " + character_found.name + " (" + str(character_found.conf.name) + ")", description="```" + character_found.system + "```" + "\nChannels active: " + character_channel_list, color=discord.Color.blue())
         embed.set_thumbnail(url=character_found.icon)
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -384,16 +384,16 @@ class Characters(commands.Cog):
             # Adds the dropdown to our view object.
             self.add_item(parent.UnlockCharacter_selectmenu(parent, all_channels))
 
-    @app_commands.command(name = "disable_character", description = "Allow a character to speak in this channel.")
+    @app_commands.command(name = "toggle_character", description = "Toggles speaking for a character in this channel.")
     @app_commands.checks.bot_has_permissions(embed_links=True)
-    async def disable_character(self, interaction : discord.Interaction, id : str = "-1", all_channels : bool = False):
+    async def toggle_character(self, interaction : discord.Interaction, id : str = "-1", all_channels : bool = False):
         if not await self.is_admin(interaction):
             embed = discord.Embed(title="You do not have permission to use this command.", color=discord.Color.yellow())
             await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
             return
         if id == "-1":
             view = self.UnlockCharacterView(self, all_channels)
-            embed = discord.Embed(description="Select a character to unlock in this channel:", color=discord.Color.blue())
+            embed = discord.Embed(description="Select a character to enable/disable in this channel:", color=discord.Color.blue())
             await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
             return
         foundat = await search_for_data(id, data.characters, interaction)
@@ -435,4 +435,147 @@ class Characters(commands.Cog):
             json.dump(j, file)
         embed = discord.Embed(description="Successfully exported all characters!", color=discord.Color.blue())
         with open("Characters.json", "rb") as file:
-            await interaction.response.send_message(embed=embed, file=discord.File(file, "Characters.json"), ephemeral=True)                 
+            await interaction.response.send_message(embed=embed, file=discord.File(file, "Characters.json"), ephemeral=True) 
+    
+    @app_commands.command(name = "import_all", description = "Import all characters from a json file, replace existing ones if found.")
+    @app_commands.checks.bot_has_permissions(embed_links=True)
+    async def import_all(self, interaction : discord.Interaction, file: discord.Attachment):      
+        if not await self.is_admin(interaction):
+            embed = discord.Embed(title="You do not have permission to use this command.", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True, delete_after=5)
+            return          
+        try:
+            raw = await file.read()
+            j = json.loads(raw)
+        except:
+            embed = discord.Embed(description="Invalid json file!", color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+        warningmsgs = []
+        for char in j["characters"]:
+            try:
+                name = char["name"]
+                system = char["system"]
+                icon = char["icon"]
+                channels = char["channels"]
+                conf = char["conf"]
+            except:
+                warningmsgs.append(f"[Character {name}]: Invalid json! Skipped.")
+                continue
+            
+            # Check if config exists
+            found = False
+            for c in data.configs:
+                if c.name == conf:
+                    found = True
+                    conf = c
+                    break
+            if not found:
+                warningmsgs.append(f"[Character {name}]: Config {conf} does not exist! Skipped.")
+                continue
+            
+            # Check if icon is valid
+            r = requests.head(icon)
+            image_formats = ("image/png", "image/jpeg", "image/jpg")
+            if r.headers["content-type"] not in image_formats:
+                warningmsgs.append(f"[Character {name}]: Invalid icon! Skipped.")
+                continue
+            
+            # Check if character already exists
+            foundat = -1
+            for i in range(len(data.characters)):
+                if data.characters[i].name == name:
+                    foundat = i
+                    break
+            if foundat != -1:
+                warningmsgs.append(f"[Character {name}]: Replaced existing with data in json.")
+                data.characters[foundat] = character.Character(c, name, icon, system)
+                continue
+            else:
+                warningmsgs.append(f"[Character {name}]: Added new with data in json.")
+                data.characters.append(character.Character(c, name, icon, system))
+        embed = discord.Embed(title=f"Finished importing {len(j['characters'])} characters!", description="\n".join(warningmsgs), color=discord.Color.blue())
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+    
+    @app_commands.command(name = "set_reminder", description = "Set the reminder for the characters (seperated by '::').")
+    @app_commands.checks.bot_has_permissions(embed_links=True)
+    async def set_reminders(self, interaction : discord.Interaction, ids : str, reminder : str):
+        ids = ids.split("::")
+        reminder = reminder.replace("\\\\n", "\n").replace("\\\\s", " ").replace("\\\\z", "")
+        results = []
+        for id in ids:
+            foundat = await search_for_data(id, data.characters, interaction)
+            if foundat == -1:
+                results.append("Character " + id + " not found!")
+                continue
+            data.characters[foundat].reminders[interaction.channel_id] = reminder
+            results.append("Set reminder for " + id + " to '" + reminder + "' in channel " + str(interaction.channel_id))
+        embed = discord.Embed(description="Successfully set reminders!", color=discord.Color.blue())
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        
+    # A select menu is basically a dropdown where the user has to pick one of the options
+    # A select menu that lets an admin unlock a character for a particular channel
+    class GetReminder_selectmenu(discord.ui.Select):
+        def __init__(self, parent):
+            self.parent = parent
+            options = []
+            for i in range (len(data.characters)):
+                options.append(discord.SelectOption(label=i, description=data.characters[i].name))
+
+            super().__init__(placeholder='Select a character to view the reminders of for this channel:', min_values=1, max_values=1, options=options)
+
+        async def callback(self, interaction: discord.Interaction):
+            foundat = int(self.values[0])
+            character = data.characters[foundat]
+            if interaction.channel_id not in character.reminders or character.reminders[interaction.channel_id] == "":
+                r = "No reminders set for this character in this channel!"
+            else:
+                r = character.reminders[interaction.channel_id]
+                if r.startswith(" "):
+                    r = "\\\\s" + r[1:]
+                if r.endswith(" "):
+                    r = "\\\\s" + r[:-1]
+                if r.startswith("\n"):
+                    r = "\\\\n" + r[1:]
+                if r.endswith("\n"):
+                    r = "\\\\n" + r[:-1]
+                r = f"Reminder for {character.name}: ```{r}```"
+            embed = discord.Embed(description=r, color=discord.Color.blue())
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.edit_original_response(view = None)
+
+    # Attaches the above select menu to a view
+    class GetReminderView(discord.ui.View):
+        def __init__(self, parent):
+            super().__init__()
+
+            # Adds the dropdown to our view object.
+            self.add_item(parent.GetReminder_selectmenu(parent))
+
+    @app_commands.command(name = "get_reminder", description = "Gets a reminder from the character.")
+    @app_commands.checks.bot_has_permissions(embed_links=True)
+    async def get_reminder(self, interaction : discord.Interaction, id : str = "-1"):
+        if id == "-1":
+            view = self.GetReminderView(self)
+            embed = discord.Embed(description="Select a character to view the reminders of for this channel:", color=discord.Color.blue())
+            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+            return
+        foundat = await search_for_data(id, data.characters, interaction)
+        if foundat == -1:
+            return
+        character = data.characters[foundat]
+        if interaction.channel_id not in character.reminders or character.reminders[interaction.channel_id] == "":
+            r = "No reminders set for this character in this channel!"
+        else:
+            r = character.reminders[interaction.channel_id]
+            if r.startswith(" "):
+                r = "\\\\s" + r[1:]
+            if r.endswith(" "):
+                r = "\\\\s" + r[:-1]
+            if r.startswith("\n"):
+                r = "\\\\n" + r[1:]
+            if r.endswith("\n"):
+                r = "\\\\n" + r[:-1]
+            r = f"Reminder for {character.name}: ```{r}```"
+        embed = discord.Embed(description=r, color=discord.Color.blue())
+        await interaction.response.send_message(embed=embed, ephemeral=True)

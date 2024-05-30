@@ -34,7 +34,7 @@ async def search_for_data(id : str, items : list, interaction : discord.Interact
         return -1
 
 # Sends a message using webhooks (if possible) to roleplay as a defined character with custom avatar and name
-async def send_message_as_character(channel, message : str, character : character.Character) -> list:
+async def send_message_as_character(channel, message : str, character : character.Character, edit_first = None) -> list:
     sent_content = []
     # Webhooks do not work in dm, so roleplay is not possible. Simply sends the message.
     if isinstance(channel, discord.DMChannel):
@@ -53,7 +53,11 @@ async def send_message_as_character(channel, message : str, character : characte
                     message_text = "```" + message_text + "```"
                     
                 if (i == 0):
-                    w = await channel.send("From " + character.name + ": " + message_text)
+                    if edit_first != None:
+                        w = edit_first
+                        await edit_first.edit(content = "From " + character.name + ": " + message_text)
+                    else:
+                        w = await channel.send("From " + character.name + ": " + message_text)
                     sent_content.append(w)
                 else:
                     w = await channel.send(message_text)
@@ -61,7 +65,11 @@ async def send_message_as_character(channel, message : str, character : characte
         else:
             if (message.count("```") % 2 != 0):
                 message = message + "```"
-            w = await channel.send("From " + character.name + ": " + message)
+            if edit_first != None:
+                w = edit_first
+                await edit_first.edit(content = "From " + character.name + ": " + message)
+            else:
+                w = await channel.send("From " + character.name + ": " + message)
             sent_content.append(w)
         
     else: 
@@ -81,21 +89,36 @@ async def send_message_as_character(channel, message : str, character : characte
                         message_text =  message_text + "```"
                         appending_code = True
                 if isinstance(channel, discord.Thread):
-                    w = await webhook.send(message_text, thread=channel, wait=True)
+                    if (i == 0 and edit_first != None):
+                        w = edit_first
+                        await edit_first.edit(content = message_text)
+                    else:
+                        w = await webhook.send(message_text, thread=channel)
                     sent_content.append(w)
                 else:
-                    w = await webhook.send(message_text, wait=True)
+                    if (i == 0 and edit_first != None):
+                        w = edit_first
+                        await edit_first.edit(content = message_text)
+                    else:
+                        w = await webhook.send(message_text, wait=True)
                     sent_content.append(w)
         else:
             if (message.count("```") % 2 != 0):
                 message = message + "```"
             if isinstance(channel, discord.Thread):
-                w = await webhook.send(message, thread=channel, wait=True)
+                if (edit_first != None):
+                    w = edit_first
+                    await edit_first.edit(content = message)
+                else:
+                    w = await webhook.send(message, thread=channel)
                 sent_content.append(w)
             else:
-                w = await webhook.send(message, wait=True)
+                if (edit_first != None):
+                    w = edit_first
+                    await edit_first.edit(content = message)
+                else:
+                    w = await webhook.send(message, wait=True)
                 sent_content.append(w)
-
     return sent_content
 
 def format_analysis (ch : chat.Chat, channelId, character=character) -> str:    
@@ -306,6 +329,13 @@ class Messaging(commands.Cog):
             analysis = analysis[:analysis.find("'")]
         character_names = []
         for character in data.characters:
+            if 'all' not in character.channels:
+                if channel.id not in character.channels:
+                    character_names.append("2a973sd8294chy3iu234h")
+                    continue
+            elif channel.id in character.channels:
+                character_names.append("2a973sd8294chy3iu234h")
+                continue
             character_names.append(character.name.lower())
         character = "" 
         for x in range(len(character_names)):
@@ -321,19 +351,14 @@ class Messaging(commands.Cog):
         if character.name == data.get_chat(channel.id).messages[-1].name:
             self.working = False
             return
-        if 'all' not in character.channels:
-            if channel.id not in character.channels:
-                self.working = False
-                return
-        elif channel.id in character.channels:
-            self.working = False
-            return
         await self.reply (from_user, channel, character)
 
     async def reply (self, from_user : str, channel, character : character.Character):
         self.working = True
-        await send_message_as_character(channel, "*thinking*", character)
+        msgs = await send_message_as_character(channel, "*thinking*", character)
         try:
+            if channel.id in character.reminders:
+                data.get_chat(channel.id).inject_reminder(character.reminders[channel.id])
             response = await character.conf.queue(data.get_chat(channel.id), character, from_user, data.tokenizer)
         except Exception as e:
             logging.error(e)
@@ -341,7 +366,7 @@ class Messaging(commands.Cog):
             await channel.send(embed=embed)
             self.working = False
             return
-        w = await send_message_as_character(channel, response, character)
+        w = await send_message_as_character(channel, response, character, msgs[0])
         data.get_chat(channel.id).append(chat.Message(character.name, response, data.tokenizer, w, character))
         self.working = False
         await self.read(character.name, response, channel)

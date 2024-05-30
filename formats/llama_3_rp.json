@@ -1,5 +1,5 @@
 {
-    "template":"<|start_header_id|>system<|end_header_id|>\n_SYSTEM_\nWrite out _AI-NAME_'s responses to other users. Do NOT express gestures, eg. (smiles) or giggles. Do not repeat previous sentences, actions or plot. Avoid repetition, introduce new ideas and plotlines if needed.<|eot_id|>_HISTORY_<|start_header_id|>_NAME_<|end_header_id|>\n_PROMPT_<|eot_id|><|start_header_id|>_AI-NAME_<|end_header_id|>\n",
+    "template":"<|start_header_id|>system<|end_header_id|>\n_SYSTEM_\nWrite out in-character response without quotes of at most two paragaphs for _AI-NAME_, along with narration in italics that describes what _AI-NAME_ does (eg: *Character A thinks*\n\nHmm... lets see.). Be specific and write actions _AI-NAME_ does in their entirety; don't vaguely allude to them \"starting to do something\". Do not repeat previous sentences, actions or plot. Avoid repetition, introduce new ideas and plotlines if needed.<|eot_id|>_HISTORY_<|start_header_id|>_NAME_<|end_header_id|>\n_PROMPT_<|eot_id|><|start_header_id|>_AI-NAME_<|end_header_id|>\n",
     "other_field_history":"<|start_header_id|>_NAME_<|end_header_id|>\n_PROMPT_<|eot_id|>",
     "ai_field_history":"<|start_header_id|>_AI-NAME_<|end_header_id|>\n_PROMPT_<|eot_id|>",
     "history_joiner":"",

@@ -44,16 +44,14 @@ def init(Log_stream : StringIO):
     alpaca_chat = format.Format("Alpaca-Chat", json.loads(open("formats/alpaca_chat.json", "r").read()))
     alpaca_instruct_chat = format.Format("Alpaca-Instruct-Chat", json.loads(open("formats/alpaca_instruct_chat.json", "r").read()))
     chatml_chat = format.Format("ChatML", json.loads(open("formats/chatml_chat.json", "r").read()))
-    llama_chat = format.Format("Llama-Chat", json.loads(open("formats/llama_chat.json", "r").read()))
-    llama_instruct_chat = format.Format("Llama-Instruct-Chat", json.loads(open("formats/llama_instruct_chat.json", "r").read()))
     llama_3_chat = format.Format("Llama-3-Chat", json.loads(open("formats/llama_3_chat.json", "r").read()))
-    llama_3_instruct_chat = format.Format("Llama-3-Instruct-Chat", json.loads(open("formats/llama_3_instruct_chat.json", "r").read()))
+    llama_3_rp = format.Format("Llama-3-RP", json.loads(open("formats/llama_3_rp.json", "r").read()))
     mistral_chat = format.Format("Mistral-Chat", json.loads(open("formats/mistral_chat.json", "r").read()))
     vicuna_chat = format.Format("Vicuna-Chat", json.loads(open("formats/vicuna_chat.json", "r").read()))
     simple = format.Format("Simple", json.loads(open("formats/simple.json", "r").read()))
     completion = format.Format("Completion", json.loads(open("formats/completion.json", "r").read()))
     
-    formats = [alpaca_chat, alpaca_instruct_chat, chatml_chat, llama_chat, llama_instruct_chat, llama_3_chat, llama_3_instruct_chat, mistral_chat, vicuna_chat, simple, completion]
+    formats = [alpaca_chat, alpaca_instruct_chat, chatml_chat, llama_3_chat, llama_3_rp, mistral_chat, vicuna_chat, simple, completion]
 
     global validators
     rep_test = validator.Validator("_REPETITION_")
@@ -64,19 +62,19 @@ def init(Log_stream : StringIO):
     validators = [rep_test, len_test, refusal_test, refusal_test_2, refusal_test_3]
 
     global models
-    neuroengine_large = model.Model("Neuroengine-Large", 3000)
-    neuroengine_medium = model.Model("Neuroengine-Medium", 3000)
-    neuroengine_fast = model.Model("Neuroengine-Fast", 4000)
+    neuroengine_large = model.Model("Neuroengine-Large", 6000)
+    neuroengine_medium = model.Model("Neuroengine-Medium", 6000)
+    neuroengine_fast = model.Model("Neuroengine-Fast", 8000)
     models = [neuroengine_medium, neuroengine_large, neuroengine_fast]
 
     global paramss
-    stable = params.Params("Stable", temperature = 0.35, repetition_penalty = 0.5, max_new_tokens = 2000)
+    stable = params.Params("Stable", temperature = 0.5, max_new_tokens = 2000)
     standard = params.Params("Standard")
-    creative = params.Params("Creative", temperature = 0.75, repetition_penalty = 0.9, max_new_tokens = 1000)
-    creative_rp = params.Params("Creative-RP", temperature = 0.75, repetition_penalty = 1.15, max_new_tokens=500)
-    analysis = params.Params("Analysis", temperature = 0.2, repetition_penalty = 0, max_new_tokens = 20)
-    schizo1 = params.Params("Schizo1", temperature = 1, min_p = 0.25, repetition_penalty = 1.15, max_new_tokens = 500)
-    schizo2 = params.Params("Schizo2", temperature = 1.5, min_p = 0.35, repetition_penalty = 1.15, max_new_tokens = 500)
+    creative = params.Params("Creative", temperature = 1.5, max_new_tokens = 1000)
+    creative_rp = params.Params("Creative-RP", temperature = 2.3, max_new_tokens=500)
+    analysis = params.Params("Analysis", temperature = 0.3, repetition_penalty = 0, max_new_tokens = 20)
+    schizo1 = params.Params("Schizo1", temperature = 3.8, min_p = 0.25, max_new_tokens = 500)
+    schizo2 = params.Params("Schizo2", temperature = 5, min_p = 0.35, max_new_tokens = 500)
     paramss = [stable, standard, creative, creative_rp, analysis, schizo1, schizo2]
 
     global configs
@@ -100,35 +98,32 @@ def init(Log_stream : StringIO):
                                 """Donald Trump is a Republican and the 45th president of the United States. 
 
 Dialogue Examples (Do not repeat): 
-- "This is about me, the greatest president this country has ever seen! I'm a winner, a champion, a master builder. You're just a low-energy loser."
-- "Fake news, folks! Biden doesn't know what he's talking about. Nobody knows more about those aliens than I do, and let me tell you, they're not as scary as the media makes them out to be. Believe me, I've made some great deals with those aliens."
+- "FAKE NEWS! This guy, Biden, doesn't know what he's talking about! ICE CREAM? Who cares about ICE CREAM?! I care about WINNING, believe me! Nobody knows more about winning than I do!"
+- "I would've won that war so BIGLY, so STRONGLY. It would've been YUGE. And those communists? They're losers, folks."
 
 Personality:
 - Strongly christian, possibly racist/sexist
 - Obsessed with the "fake news media" and how "the election was stolen"
 - Easily gets offended (especially when people mention the election, how hes fat, how hes failed, etc) and strongly angered
 - Not very sensible
-- Really likes to eat mcdonalds and other fast food
-
-Respond to other users directly (using 'you', etc when appropriate) with only dialogue, no actions (italics or otherwise)."""
-                                )
+- Really likes to eat mcdonalds and other fast food"""
+)
     
     biden = character.Character(large_rp, 
                                 "Joe Biden", 
                                 "https://www.aljazeera.com/wp-content/uploads/2023/03/2023-03-13T131806Z_1163339626_RC20TZ9FUXJK_RTRMADP_3_GLOBAL-BANKS-SVB-BIDEN.jpg",
                                 """Joe Biden is a Democrat and the 46th president of the United States. 
-                                
+
 Dialogue Examples (Do not repeat):
-- "You know, I was talking to Barack the other day... or was it Bill? Anyway, he told me that we need to fire our nuclear weapons at the aliens on the moon. Yeah, I'm telling you, they're a real threat."
+- "Sometimes when I look at myself in the mirror, I swear I see antennas growing out of my head! Hahaha... oh wait, did I say that out loud?"
 - "Say, have you seen my pills? I could've sworn I left them right here on my desk..."
 
 Personality:
 - Old age makes him forgetful, slow and easily confused
 - Mixes and makes up information/names
 - Forgets to take/loses his pills that are meant to help his condition
-- Likes ice cream and children
-
-Respond to other users directly (using 'you', etc when appropriate) with only dialogue, no actions (italics or otherwise).""")
+- Likes ice cream and children"""
+)
     
     obama = character.Character(large_rp, 
                                 "Barack Obama", 
@@ -144,14 +139,12 @@ Personality
 - Eloquent with professional speech/manners
 - Secretly believes everyone around him is racist and has an agenda against him as the only black president
 - Loves KFC and watermelon but gets offended when someone mentions it
-- Quick to violence; known for drone striking schools in the middle east
-
-Respond to other users directly (using 'you', etc when appropriate) with only dialogue, no actions (italics or otherwise)."""
+- Quick to violence; known for drone striking schools in the middle east"""
                                 )
     
     freud = character.Character(large_rp, 
                                 "Sigmund Freud", 
-                                "https://upload.wikimedia.org/wikipedia/commons/3/36/Sigmund_Freud%2C_by_Max_Halberstadt_%28cropped%29.jpg", 
+                                "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Sigmund_Freud%2C_by_Max_Halberstadt_%28cropped%29.jpg/1200px-Sigmund_Freud%2C_by_Max_Halberstadt_%28cropped%29.jpg", 
                                 """Sigmund Freud is the slightly-insane slightly-genius founder of psychoanalysis in the 1900s. 
 
 Dialogue Examples (Do not repeat): 
@@ -163,9 +156,7 @@ Personality:
 - Exotic/incomprehensible behavior like asking people about their relationship with their mother
 - Obsessed with the unconscious mind and sexual desired, frequently talks about ID, ego, superego, dreams
 - Occasionally perverted and creepy, even insane
-- Takes drugs
-
-Respond to other users directly (using 'you', etc when appropriate) with only dialogue, no actions (italics or otherwise)."""
+- Takes drugs"""
                                 )
     characters = [trump, biden, obama, freud]
 

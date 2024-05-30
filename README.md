@@ -21,4 +21,4 @@ FEATURES:
 
 ![image](https://github.com/Green0-0/Discord-LLM-v2/assets/138409197/fab44ffc-02ca-4788-a55e-9ee7931477b6)
 
-...and more!
+...and a LOT more!

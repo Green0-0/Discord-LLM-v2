@@ -69,7 +69,7 @@ class Configuration_Viewing(commands.Cog):
         text = []
         # Creates a numbered list
         for x in range(len(data.configs)):
-            text.append(str(x) + ". " + data.configs[x].name)
+            text.append("``" + str(x) + "``. " + data.configs[x].name)
         final_text = "\n".join(text)
         embed = discord.Embed(title="Configs", description=final_text, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -130,7 +130,7 @@ class Configuration_Viewing(commands.Cog):
             text = []
             # Creates a numbered list
             for x in range(len(ls)):
-                text.append("" + str(x) + ". " + ls[x]['name'] + " (Queue: " + str(ls[x]['queuelen']) + ")")
+                text.append("``" + str(x) + "``. " + ls[x]['name'] + " (Queue: " + str(ls[x]['queuelen']) + ")")
         except Exception as e:
             logging.error(e)
             embed = discord.Embed(title="Exception", description=str(e), color=discord.Color.red())
@@ -147,7 +147,7 @@ class Configuration_Viewing(commands.Cog):
         text = []
         # Creates a numbered list
         for x in range(len(data.models)):
-            text.append("" + str(x) + ". " + data.models[x].name + " (" + str(data.models[x].context_length) + " ctx)")
+            text.append("``" + str(x) + "``. " + data.models[x].name + " (" + str(data.models[x].context_length) + " ctx)")
         final_text = "\n".join(text)
         embed = discord.Embed(title="Models", description=final_text, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -158,7 +158,7 @@ class Configuration_Viewing(commands.Cog):
         text = []
         # Creates a numbered list
         for x in range(len(data.paramss)):
-            text.append(str(x) + ". " + data.paramss[x].name)
+            text.append("``" + str(x) + "``. " + data.paramss[x].name)
         final_text = "\n".join(text)
         embed = discord.Embed(title="Sampling Presets", description=final_text, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -221,7 +221,7 @@ class Configuration_Viewing(commands.Cog):
         text = []
         # Creates a numbered list
         for x in range(len(data.formats)):
-            text.append(str(x) + ". " + data.formats[x].name)
+            text.append("``" + str(x) + "``. " + data.formats[x].name)
         final_text = "\n".join(text)
         embed = discord.Embed(title="Prompt Formats", description=final_text, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -372,7 +372,7 @@ class Configuration_Viewing(commands.Cog):
         # Creates a numbered list
         for x in range(len(data.validators)):
             c = data.validators[x]
-            s = "" + str(x) + ". ``" + str(c) + "``"
+            s = "``" + str(x) + "``. ``" + str(c) + "``"
             text.append(s)
         final_text = "\n".join(text)
         embed = discord.Embed(title="Validators", description=final_text, color=discord.Color.blue())

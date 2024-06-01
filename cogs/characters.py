@@ -69,7 +69,7 @@ class Characters(commands.Cog):
         text = []
         # Creates a numbered list
         for x in range(len(data.characters)):
-            text.append("" + str(x) + ". " + data.characters[x].name + " (" + str(data.characters[x].conf.name) + ")")
+            text.append("``" + str(x) + "``. " + data.characters[x].name + " (" + str(data.characters[x].conf.name) + ")")
         final_text = "\n".join(text)
         embed = discord.Embed(title="Characters", description=final_text, color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -496,23 +496,90 @@ class Characters(commands.Cog):
                 data.characters.append(character.Character(c, name, icon, system))
         embed = discord.Embed(title=f"Finished importing {len(j['characters'])} characters!", description="\n".join(warningmsgs), color=discord.Color.blue())
         await interaction.response.send_message(embed=embed, ephemeral=True)
-    
+        
+    # A modal is basically a form the user fills out and then submits
+    # A modal that edits a reminder
+    class EditReminderModal(ui.Modal, title = "Character Editing"):
+        def __init__(self, chars : list, filler = ""):
+            if len(chars) == 1:
+                self.title = f"Editing {chars[0].name}"
+            else:
+                self.title = f"Editing {len(chars)} Characters"
+
+            super().__init__()
+
+            self.chars = chars
+
+            self.add_item(discord.ui.TextInput(
+                label = "New Reminder:",
+                default = filler,
+                required = True
+            ))
+
+        # Called when the user submits the modal
+        async def on_submit(self, interaction : discord.Interaction):
+            reminder = self.children[0].value.replace("\\\\n", "\n").replace("\\\\s", " ").replace("\\\\z", "")
+            names_set = []
+            for c in self.chars:
+                c.reminders[interaction.channel_id] = reminder
+                names_set.append(c.name)
+            embed = discord.Embed(description="Successfully set reminders for " + ", ".join(names_set) + " to ```" + reminder + "```", color=discord.Color.blue())
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            
+    # A select menu is basically a dropdown where the user has to pick one of the options
+    # A select menu that lets an admin delete a character
+    class EditReminder_selectmenu(discord.ui.Select):
+        def __init__(self, parent):
+            self.parent = parent
+            options = []
+            for i in range (len(data.characters)):
+                options.append(discord.SelectOption(label=i, description=data.characters[i].name))
+
+            super().__init__(placeholder='Select a character to set the reminder for in this channel', min_values=1, max_values=1, options=options)
+
+        async def callback(self, interaction: discord.Interaction):
+            foundat = int(self.values[0])
+            chars = [data.characters[foundat]]
+            basePrompt = ""
+            if interaction.channel_id in chars[0].reminders:
+                basePrompt = chars[0].reminders[interaction.channel_id]
+            await interaction.response.send_modal(self.parent.EditReminderModal(chars, basePrompt))
+            await interaction.edit_original_response(view = None)
+
+    # Attaches the above select menu to a view
+    class EditReminderView(discord.ui.View):
+        def __init__(self, parent):
+            super().__init__()
+
+            # Adds the dropdown to our view object.
+            self.add_item(parent.EditReminder_selectmenu(parent))
+              
     @app_commands.command(name = "set_reminder", description = "Set the reminder for the characters (seperated by '::').")
     @app_commands.checks.bot_has_permissions(embed_links=True)
-    async def set_reminders(self, interaction : discord.Interaction, ids : str, reminder : str):
+    async def set_reminders(self, interaction : discord.Interaction, ids : str = "-1"):
+        if ids == "-1":
+            view = self.EditReminderView(self)
+            embed = discord.Embed(description="Select a character to set the reminder for in this channel:", color=discord.Color.blue())
+            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+            return
         ids = ids.split("::")
-        reminder = reminder.replace("\\\\n", "\n").replace("\\\\s", " ").replace("\\\\z", "")
-        results = []
+        basePrompt = ""
+        chars = []
+        errors = []
         for id in ids:
             foundat = await search_for_data(id, data.characters, interaction)
             if foundat == -1:
-                results.append("Character " + id + " not found!")
+                errors.append("Character " + id + " not found!")
                 continue
-            data.characters[foundat].reminders[interaction.channel_id] = reminder
-            results.append("Set reminder for " + id + " to '" + reminder + "' in channel " + str(interaction.channel_id))
-        embed = discord.Embed(description="Successfully set reminders!", color=discord.Color.blue())
-        await interaction.response.send_message(embed=embed, ephemeral=True)
-        
+            if interaction.channel_id in data.characters[foundat].reminders:
+                basePrompt = data.characters[foundat].reminders[interaction.channel_id]
+            chars.append(data.characters[foundat])
+        if len(errors) > 0:
+            embed = discord.Embed(description="\n".join(errors), color=discord.Color.yellow())
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+        else:
+            await interaction.response.send_modal(self.EditReminderModal(chars, basePrompt))
+
     # A select menu is basically a dropdown where the user has to pick one of the options
     # A select menu that lets an admin unlock a character for a particular channel
     class GetReminder_selectmenu(discord.ui.Select):
@@ -565,7 +632,7 @@ class Characters(commands.Cog):
             return
         character = data.characters[foundat]
         if interaction.channel_id not in character.reminders or character.reminders[interaction.channel_id] == "":
-            r = "No reminders set for this character in this channel!"
+            r = f"No reminders set for {character.name} in this channel!"
         else:
             r = character.reminders[interaction.channel_id]
             if r.startswith(" "):
